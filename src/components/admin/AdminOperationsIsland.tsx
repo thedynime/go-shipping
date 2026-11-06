@@ -462,7 +462,21 @@ function UserRowActionMenu({
 }
 
 export default function AdminOperationsIsland({ initialTab = 'overview' }: { initialTab?: string }) {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(() => {
+    if (initialTab === 'pos_ledger' || initialTab === 'ledger') return 'orders';
+    return initialTab;
+  });
+  const [ordersSubView, setOrdersSubView] = useState<'sourcing' | 'freight'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const v = params.get('view');
+      const t = params.get('tab');
+      if (v === 'freight' || t === 'shipments' || t === 'tracking') return 'freight';
+      if (v === 'sourcing' || t === 'pos_ledger' || t === 'ledger') return 'sourcing';
+    }
+    if (initialTab === 'pos_ledger' || initialTab === 'ledger') return 'sourcing';
+    return 'sourcing';
+  });
   const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
   const [quotes, setQuotes] = useState<QuoteRecord[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseRecord[]>([]);
@@ -1135,27 +1149,46 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
     }
   };
 
-  // Sync tab with URL
+  // Sync tab & view with URL
   useEffect(() => {
     const handleUrlChange = () => {
       const url = new URL(window.location.href);
-      const tabParam = url.searchParams.get('tab');
+      let tabParam = url.searchParams.get('tab');
+      const viewParam = url.searchParams.get('view');
       if (tabParam === 'email') {
         setActiveTab('overview');
         url.searchParams.set('tab', 'overview');
         window.history.replaceState({}, '', url.toString());
         return;
       }
+      if (tabParam === 'pos_ledger' || tabParam === 'ledger') {
+        tabParam = 'orders';
+        setOrdersSubView('sourcing');
+      }
       if (tabParam && tabParam !== activeTab) {
         setActiveTab(tabParam);
+      }
+      if (viewParam === 'sourcing' || viewParam === 'freight') {
+        setOrdersSubView(viewParam);
+      } else if (tabParam === 'shipments' || tabParam === 'tracking') {
+        setOrdersSubView('freight');
       }
     };
     handleUrlChange();
     window.addEventListener('popstate', handleUrlChange);
 
     const handleCustomSwitch = (e: any) => {
-      if (e.detail && e.detail !== activeTab) {
-        setActiveTab(e.detail);
+      const detail = e.detail;
+      const targetTab = typeof detail === 'string' ? detail : detail?.tab;
+      const targetView = typeof detail === 'object' ? detail?.view : undefined;
+      if (targetTab === 'pos_ledger' || targetTab === 'ledger') {
+        setActiveTab('orders');
+        setOrdersSubView('sourcing');
+      } else if (targetTab && targetTab !== activeTab) {
+        setActiveTab(targetTab);
+      }
+      if (targetView === 'sourcing' || targetView === 'freight') {
+        setOrdersSubView(targetView);
       }
     };
     window.addEventListener('switch-dashboard-tab', handleCustomSwitch);
@@ -1166,12 +1199,32 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
     };
   }, [activeTab]);
 
-  const switchTab = (tab: string) => {
-    setActiveTab(tab);
+  const switchOrdersView = (view: 'sourcing' | 'freight') => {
+    setOrdersSubView(view);
     const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
+    url.searchParams.set('tab', 'orders');
+    url.searchParams.set('view', view);
     window.history.pushState({}, '', url.toString());
-    window.dispatchEvent(new CustomEvent('dashboard-tab-changed', { detail: tab }));
+    window.dispatchEvent(new CustomEvent('dashboard-tab-changed', { detail: { tab: 'orders', view } }));
+  };
+
+  const switchTab = (tab: string, view?: 'sourcing' | 'freight') => {
+    const normalizedTab = (tab === 'pos_ledger' || tab === 'ledger') ? 'orders' : tab;
+    const effectiveView = view || ((tab === 'pos_ledger' || tab === 'ledger') ? 'sourcing' : (tab === 'shipments' || tab === 'tracking') ? 'freight' : undefined);
+    
+    setActiveTab(normalizedTab);
+    if (effectiveView) {
+      setOrdersSubView(effectiveView);
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', normalizedTab);
+    if (effectiveView) {
+      url.searchParams.set('view', effectiveView);
+    } else {
+      url.searchParams.delete('view');
+    }
+    window.history.pushState({}, '', url.toString());
+    window.dispatchEvent(new CustomEvent('dashboard-tab-changed', { detail: { tab: normalizedTab, view: effectiveView } }));
   };
 
   const loadData = async (manualSync = false) => {
@@ -2010,11 +2063,11 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
 
       let emailNotice = '';
       if (data.emailFallback) {
-        emailNotice = '\n\n📧 Note: Email forwarded via Resend Sandbox (Recipient: ' + data.user.email + ').';
+        emailNotice = '\n\nNote: Email forwarded via Resend Sandbox (Recipient: ' + data.user.email + ').';
       } else if (data.emailSent) {
-        emailNotice = `\n\n📧 Onboarding credentials email dispatched directly to ${data.user.email} from notifications@send.goshipping.com.bd!`;
+        emailNotice = `\n\nOnboarding credentials email dispatched directly to ${data.user.email} from notifications@send.goshipping.com.bd!`;
       } else if (data.emailWarning) {
-        emailNotice = `\n\n📧 Email status: ${data.emailWarning}`;
+        emailNotice = `\n\nEmail status: ${data.emailWarning}`;
       }
 
       alert(`User profile created successfully for ${data.user.fullName}!${emailNotice}`);
@@ -2397,15 +2450,13 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
       case 'shipments':
       case 'tracking':
       case 'orders':
-        return {
-          title: 'Orders & Live Tracking',
-          subtitle: 'Manage shipments, update delivery status, and view routes'
-        };
       case 'pos_ledger':
       case 'ledger':
         return {
-          title: 'POS Sourcing & Freight Ledger',
-          subtitle: 'All-in-One operational ledger, live RMB/BDT currency conversions, courier dispatch & 80mm receipt generator'
+          title: ordersSubView === 'sourcing' ? 'POS Sourcing & Freight Ledger' : 'Orders & Freight Shipments',
+          subtitle: ordersSubView === 'sourcing'
+            ? 'Unified order desk: Taobao & 1688 product purchasing, supplier ledger, and vector receipts'
+            : 'Track live international shipments, update delivery status, and manage customs clearance'
         };
       case 'quotes':
         return {
@@ -2584,7 +2635,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
         ) : (
           <>
             {/* KPI COUNTER CARDS (Visible across overview, orders, quotes, etc.) */}
-        {activeTab !== 'new_order' && activeTab !== 'pos_ledger' && activeTab !== 'ledger' && (
+        {activeTab !== 'new_order' && !(activeTab === 'orders' && ordersSubView === 'sourcing') && activeTab !== 'pos_ledger' && activeTab !== 'ledger' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg p-5 border border-slate-200 space-y-1 shadow-xs">
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Shipments</span>
@@ -3943,7 +3994,11 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <span>📍</span> Live Dispatch Coordinates
+                        <svg className="w-3.5 h-3.5 text-slate-400 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span>Live Dispatch Coordinates</span>
                       </span>
                       <span className="text-[11px] font-mono font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
                         {compiledPhone}
@@ -4109,7 +4164,10 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                 <div className="bg-white rounded-xl border border-slate-200/90 p-5 sm:p-6 shadow-sm space-y-3.5">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">📍</span>
+                      <svg className="w-4 h-4 text-slate-500 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
                       <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-['Manrope',sans-serif]">
                         Hub &amp; Warehouse Coordinates
                       </h3>
@@ -4124,7 +4182,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                     <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5">
                       <div className="flex items-center justify-between text-slate-500 mb-0.5">
                         <span className="font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5 text-slate-800">
-                          <span>🇨🇳</span> Origin Hub ({selectedOriginWarehouse.city})
+                          <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">CN</span> Origin Hub ({selectedOriginWarehouse.city})
                         </span>
                         <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-slate-700">
                           {selectedOriginWarehouse.code}
@@ -4147,7 +4205,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                     <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5">
                       <div className="flex items-center justify-between text-slate-500 mb-0.5">
                         <span className="font-bold text-[11px] uppercase tracking-wider flex items-center gap-1.5 text-slate-800">
-                          <span>{newDestCountry === 'Malaysia' ? '🇲🇾' : '🇧🇩'}</span> Destination Hub ({selectedDestWarehouse.city})
+                          <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-800">{newDestCountry === 'Malaysia' ? 'MY' : 'BD'}</span> Destination Hub ({selectedDestWarehouse.city})
                         </span>
                         <span className="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold text-slate-700">
                           {selectedDestWarehouse.code}
@@ -4168,7 +4226,9 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   {/* Transit SLA */}
                   <div className="p-3 rounded-lg bg-red-50/60 border border-red-100 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <span>⚡</span>
+                      <svg className="w-3.5 h-3.5 text-[#EA1D2C] stroke-[2.2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                      </svg>
                       <span className="font-semibold text-slate-800 text-[11px]">
                         {newMode === 'air' ? 'Air Cargo' : newMode === 'sea' ? 'Ocean Freight' : 'Hand Carry'} SLA
                       </span>
@@ -4185,33 +4245,61 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
           </div>
         )}
         {/* ========================================================= */}
-        {/* TAB: ORDERS & LIVE TRACKING TELEMETRY                      */}
+        {/* TAB: UNIFIED ORDERS & SOURCING POS LEDGER DESK            */}
         {/* ========================================================= */}
-        {(activeTab === 'shipments' || activeTab === 'tracking' || activeTab === 'orders') && (
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 space-y-5 shadow-xs">
-            {/* Header: Breadcrumb Pill, Executive Title, Sync & New Consignment Action */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Orders Desk
+        {(activeTab === 'shipments' || activeTab === 'tracking' || activeTab === 'orders' || activeTab === 'pos_ledger' || activeTab === 'ledger') && (
+          <div className="space-y-6">
+            {/* Top Level Sub-view Segmented Switcher & Quick Actions */}
+            <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => switchOrdersView('sourcing')}
+                  className={`h-9 px-4 rounded-lg text-xs font-bold flex items-center gap-2 transition-none cursor-pointer ${
+                    ordersSubView === 'sourcing'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M9 21V9" />
+                    <path d="m14 13 2 2 4-4" />
+                  </svg>
+                  <span>Sourcing POS Ledger</span>
+                  <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                    ordersSubView === 'sourcing' ? 'bg-[#EA1D2C] text-white' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    POS
                   </span>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-[11px] font-mono font-medium text-slate-500">
-                    {shipments.length} Active Shipments
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => switchOrdersView('freight')}
+                  className={`h-9 px-4 rounded-lg text-xs font-bold flex items-center gap-2 transition-none cursor-pointer ${
+                    ordersSubView === 'freight'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="m7.5 4.27 9 5.15" />
+                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                    <path d="m3.3 7 8.7 5 8.7-5" />
+                    <path d="M12 22V12" />
+                  </svg>
+                  <span>Freight Shipments</span>
+                  <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                    ordersSubView === 'freight' ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {shipments.length}
                   </span>
-                </div>
-                <h2 className="text-lg sm:text-xl font-bold text-slate-900 font-['Manrope',sans-serif] tracking-tight">
-                  All Orders &amp; Shipments
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Track live shipments, update delivery progress, and manage customs clearance.
-                </p>
+                </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button
                   type="button"
                   onClick={() => {
@@ -4225,10 +4313,58 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                  <span>New Order</span>
+                  <span>+ New Freight Order</span>
                 </button>
               </div>
             </div>
+
+            {/* Sub-view 1: Sourcing POS Ledger Terminal */}
+            {ordersSubView === 'sourcing' && (
+              <PosLedgerTerminal showToast={showToast} />
+            )}
+
+            {/* Sub-view 2: Freight Shipments Desk */}
+            {ordersSubView === 'freight' && (
+              <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-200/90 space-y-5 shadow-xs">
+                {/* Header: Breadcrumb Pill, Executive Title, Sync & New Consignment Action */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Freight Desk
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="text-[11px] font-mono font-medium text-slate-500">
+                        {shipments.length} Active Shipments
+                      </span>
+                    </div>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 font-['Manrope',sans-serif] tracking-tight">
+                      All Freight Shipments &amp; Consignments
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Track live shipments, update delivery progress, and manage customs clearance.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewCustomTrackingNumber('');
+                        switchTab('new_order');
+                      }}
+                      className="h-9 px-4 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-bold flex items-center gap-2 shadow-xs transition-none cursor-pointer"
+                      title="Create New Consignment Order"
+                    >
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      <span>New Order</span>
+                    </button>
+                  </div>
+                </div>
 
             {/* Quick KPI Overview Strip */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -4551,6 +4687,8 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                 </tbody>
               </table>
             </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -5646,13 +5784,6 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
         })()}
 
         {/* ========================================================= */}
-        {/* TAB: POS ALL-IN-ONE SOURCING & FREIGHT LEDGER             */}
-        {/* ========================================================= */}
-        {(activeTab === 'pos_ledger' || activeTab === 'ledger') && (
-          <PosLedgerTerminal showToast={showToast} />
-        )}
-
-        {/* ========================================================= */}
         {/* TAB: HOMEPAGE HERO BANNERS & SLIDER                       */}
         {/* ========================================================= */}
         {activeTab === 'banners' && (
@@ -5718,8 +5849,8 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <span className="text-[10px] text-slate-400 block mt-0.5">Active consolidation hubs</span>
                 </div>
                 <div className="bg-slate-50/70 rounded-lg p-3 border border-slate-200/80">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1">
-                    <span>🇨🇳</span> China Origin Hub
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span className="font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-slate-200 text-slate-700">CN</span> China Origin Hub
                   </span>
                   <span className="text-xl font-bold text-slate-900 font-['Manrope',sans-serif]">
                     {warehouses.filter((w) => w.country.toLowerCase() === 'china').length}
@@ -5727,8 +5858,8 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <span className="text-[10px] text-slate-400 block mt-0.5">Sanyuanli Ave, Guangzhou</span>
                 </div>
                 <div className="bg-slate-50/70 rounded-lg p-3 border border-slate-200/80">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1">
-                    <span>🇧🇩</span> Bangladesh Hub
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span className="font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-slate-200 text-slate-700">BD</span> Bangladesh Hub
                   </span>
                   <span className="text-xl font-bold text-slate-900 font-['Manrope',sans-serif]">
                     {warehouses.filter((w) => w.country.toLowerCase() === 'bangladesh').length}
@@ -5736,8 +5867,8 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <span className="text-[10px] text-slate-400 block mt-0.5">43/31 Sabujkanon, Dhaka</span>
                 </div>
                 <div className="bg-slate-50/70 rounded-lg p-3 border border-slate-200/80">
-                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1">
-                    <span>🇲🇾</span> Malaysia Hub
+                  <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span className="font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-slate-200 text-slate-700">MY</span> Malaysia Hub
                   </span>
                   <span className="text-xl font-bold text-slate-900 font-['Manrope',sans-serif]">
                     {warehouses.filter((w) => w.country.toLowerCase() === 'malaysia').length}
@@ -5752,9 +5883,9 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
               <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                 {[
                   { id: 'all', label: `All Facilities (${warehouses.length})` },
-                  { id: 'China', label: `🇨🇳 China (${warehouses.filter(w => w.country.toLowerCase() === 'china').length})` },
-                  { id: 'Bangladesh', label: `🇧🇩 Bangladesh (${warehouses.filter(w => w.country.toLowerCase() === 'bangladesh').length})` },
-                  { id: 'Malaysia', label: `🇲🇾 Malaysia (${warehouses.filter(w => w.country.toLowerCase() === 'malaysia').length})` }
+                  { id: 'China', label: `China (${warehouses.filter(w => w.country.toLowerCase() === 'china').length})` },
+                  { id: 'Bangladesh', label: `Bangladesh (${warehouses.filter(w => w.country.toLowerCase() === 'bangladesh').length})` },
+                  { id: 'Malaysia', label: `Malaysia (${warehouses.filter(w => w.country.toLowerCase() === 'malaysia').length})` }
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -5801,7 +5932,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                           {wh.code}
                         </span>
                         <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          {wh.country === 'Bangladesh' ? '🇧🇩 BD' : wh.country === 'Malaysia' ? '🇲🇾 MY' : '🇨🇳 CN'}
+                          {wh.country === 'Bangladesh' ? 'BD' : wh.country === 'Malaysia' ? 'MY' : 'CN'}
                         </span>
                       </div>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
@@ -5889,8 +6020,20 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
 
             {filteredWarehouses.length === 0 && (
               <div className="bg-white rounded-xl p-12 border border-slate-200 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-xl">
-                  🏢
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-500">
+                  <svg className="w-6 h-6 stroke-[1.8]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect width="16" height="20" x="4" y="2" rx="2" />
+                    <path d="M9 22v-4h6v4" />
+                    <path d="M8 6h.01" />
+                    <path d="M16 6h.01" />
+                    <path d="M12 6h.01" />
+                    <path d="M12 10h.01" />
+                    <path d="M12 14h.01" />
+                    <path d="M16 10h.01" />
+                    <path d="M16 14h.01" />
+                    <path d="M8 10h.01" />
+                    <path d="M8 14h.01" />
+                  </svg>
                 </div>
                 <h3 className="text-sm font-bold text-slate-800">No Warehouse Facilities Found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -6424,7 +6567,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>🇧🇩</span> Bangladesh
+                        <span className="font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-slate-200 text-slate-700">BD</span> Bangladesh
                       </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
                         Active Corridor
@@ -6450,7 +6593,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <div className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/70 space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>🇲🇾</span> Malaysia
+                        <span className="font-mono text-[9px] font-bold px-1 py-0.2 rounded bg-slate-200 text-slate-700">MY</span> Malaysia
                       </span>
                       <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded">
                         Active Corridor

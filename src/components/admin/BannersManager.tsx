@@ -388,9 +388,13 @@ export default function BannersManager({ showToast }: { showToast: (msg: string,
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer"
+                title="Close dialog"
               >
-                ✕
+                <svg className="w-4 h-4 stroke-[2.2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
@@ -575,9 +579,13 @@ export default function BannersManager({ showToast }: { showToast: (msg: string,
                         <button
                           type="button"
                           onClick={() => setFeatureInputs(featureInputs.filter((_, idx) => idx !== fIdx))}
-                          className="w-7 h-8 rounded border border-slate-200 text-slate-500 hover:text-red-600 text-xs flex items-center justify-center cursor-pointer"
+                          className="w-7 h-8 rounded border border-slate-200 text-slate-500 hover:text-red-600 flex items-center justify-center cursor-pointer"
+                          title="Remove feature"
                         >
-                          ✕
+                          <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
                         </button>
                       )}
                     </div>

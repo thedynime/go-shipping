@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { PosLedgerRecord } from '../../server/services/posLedger.service';
+import { downloadPosReceiptPDF } from '../../lib/posReceiptPdf';
 
 interface PosStats {
   totalOrders: number;
@@ -296,8 +297,13 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
     }
   };
 
-  const triggerThermalPrint = () => {
-    window.print();
+  const handleDownloadPdf = (rec: PosLedgerRecord) => {
+    try {
+      downloadPosReceiptPDF(rec);
+      showToast(`Downloaded official PDF receipt for ${rec.orderId}`, 'success');
+    } catch {
+      showToast('Failed to generate PDF receipt', 'error');
+    }
   };
 
   return (
@@ -580,21 +586,40 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
                     {/* Actions */}
                     <td className="py-2.5 px-3 text-right sticky right-0 bg-white hover:bg-slate-50 z-10 whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Thermal Print Slip */}
+                        {/* Direct PDF Download */}
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadPdf(r)}
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 text-slate-700 hover:text-[#EA1D2C] text-xs cursor-pointer shadow-2xs transition-colors"
+                          title="Download PDF Receipt"
+                        >
+                          <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                        </button>
+
+                        {/* View Receipt Modal */}
                         <button
                           type="button"
                           onClick={() => setThermalReceiptRecord(r)}
-                          className="p-1.5 rounded border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs cursor-pointer shadow-2xs"
-                          title="Print POS Thermal Receipt Slip"
+                          className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs cursor-pointer shadow-2xs transition-colors"
+                          title="Preview Receipt Slip"
                         >
-                          🖨️
+                          <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
                         </button>
 
                         {/* Edit */}
                         <button
                           type="button"
                           onClick={() => openEditDrawer(r)}
-                          className="px-2 py-1 rounded bg-slate-900 hover:bg-black text-white text-[11px] font-bold cursor-pointer transition-none"
+                          className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-black text-white text-[11px] font-semibold cursor-pointer transition-none shadow-2xs"
                         >
                           Edit
                         </button>
@@ -603,10 +628,13 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
                         <button
                           type="button"
                           onClick={() => handleDelete(r.id, r.orderId)}
-                          className="p-1 rounded text-slate-400 hover:text-red-600 cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
                           title="Delete Order"
                         >
-                          ✕
+                          <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -626,7 +654,11 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
             <div className="flex items-center justify-between pb-4 border-b border-slate-200">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 font-['Manrope'] flex items-center gap-2">
-                  <span>⚡</span>
+                  <span className="w-7 h-7 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center">
+                    <svg className="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                  </span>
                   <span>{editingRecord ? `Edit Order: ${editingRecord.orderId}` : 'POS Rapid Order Terminal'}</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -636,9 +668,13 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
               <button
                 type="button"
                 onClick={() => setShowPosDrawer(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                aria-label="Close modal"
               >
-                ✕
+                <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
@@ -1077,20 +1113,25 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
             </div>
 
             {/* Modal Controls */}
-            <div className="flex items-center justify-between gap-2 pt-4">
+            <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setThermalReceiptRecord(null)}
-                className="px-3 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                className="px-3.5 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors"
               >
-                Close
+                Close Preview
               </button>
               <button
                 type="button"
-                onClick={triggerThermalPrint}
-                className="px-4 py-2 rounded-lg bg-[#EA1D2C] text-white text-xs font-bold hover:bg-[#D41523] flex items-center gap-1.5 cursor-pointer shadow-xs"
+                onClick={() => handleDownloadPdf(thermalReceiptRecord)}
+                className="px-4 py-2 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs transition-colors"
               >
-                <span>🖨️ Print Slip</span>
+                <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Download PDF Receipt</span>
               </button>
             </div>
           </div>
@@ -1108,9 +1149,13 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
               <button
                 type="button"
                 onClick={() => setShowImportModal(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold cursor-pointer"
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                aria-label="Close modal"
               >
-                ✕
+                <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
 
