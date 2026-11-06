@@ -44,6 +44,11 @@ export interface ShipmentItem {
   categoryTag: 'General' | 'Commercial' | 'Liquids' | 'Dangerous' | 'Perishable' | 'Electronics';
   declaredValue?: number;
   currency?: string;
+  arrived?: boolean;
+  arrivedQuantity?: number;
+  arrivedWeightKg?: number;
+  arrivedAt?: string;
+  invoiceNumber?: string;
 }
 
 export interface ShipmentEvent {
@@ -1033,6 +1038,50 @@ export class ShipmentService {
 
     const { shipments } = await this.searchShipmentsUnified(trackingNumber);
     return shipments.length > 0 ? { ...shipments[0] } : null;
+  }
+
+  /**
+   * Get direct reference to shipment by ID or Tracking
+   */
+  static async getById(idOrTracking: string): Promise<ShipmentRecord | null> {
+    const clean = idOrTracking.trim();
+    const found = initialShipments.find(
+      (s) => s.id === clean || s.trackingNumber.toUpperCase() === clean.toUpperCase()
+    );
+    return found || null;
+  }
+
+  /**
+   * Update selective product item arrival statuses
+   */
+  static async updateItemArrivals(
+    shipmentId: string,
+    arrivals: Array<{ itemId: string; arrived: boolean; arrivedQuantity?: number; arrivedWeightKg?: number }>
+  ): Promise<ShipmentRecord | null> {
+    const shipment = await this.getById(shipmentId);
+    if (!shipment) return null;
+
+    const arrivalMap = new Map<string, { arrived: boolean; arrivedQuantity?: number; arrivedWeightKg?: number }>();
+    arrivals.forEach((a) => arrivalMap.set(a.itemId, a));
+
+    if (shipment.items) {
+      shipment.items = shipment.items.map((si: ShipmentItem) => {
+        const match = arrivalMap.get(si.id);
+        if (match) {
+          return {
+            ...si,
+            arrived: match.arrived,
+            arrivedQuantity: match.arrivedQuantity !== undefined ? match.arrivedQuantity : si.quantity,
+            arrivedWeightKg: match.arrivedWeightKg !== undefined ? match.arrivedWeightKg : si.weightKg,
+            arrivedAt: match.arrived ? new Date().toISOString() : undefined
+          };
+        }
+        return si;
+      });
+    }
+
+    shipment.updatedAt = new Date().toISOString();
+    return shipment;
   }
 
   /**

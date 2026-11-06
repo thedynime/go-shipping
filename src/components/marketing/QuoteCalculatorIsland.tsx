@@ -399,12 +399,12 @@ export default function QuoteCalculatorIsland({
             {/* Left Column: Form Fields */}
             <div className="lg:col-span-8 space-y-4">
               {/* Procedure Micro-Bar */}
-              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 text-xs shadow-2xs">
-                <div className="flex items-center gap-2 min-w-0">
+              <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-2xs">
+                <div className="flex items-start sm:items-center gap-2 min-w-0">
                   <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-300/40 shrink-0">
                     How it works
                   </span>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 truncate sm:whitespace-normal leading-tight">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
                     Order from 1688, Taobao, or Chinese factory. We assign your unique <strong>Shipping Mark</strong> and deliver to Bangladesh.
                   </p>
                 </div>
@@ -418,7 +418,7 @@ export default function QuoteCalculatorIsland({
 
               {/* STEP 1: TRANSPORT MODE SELECTOR (Compact Radio Buttons) */}
               <div className="bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-xl border border-red-100 dark:border-slate-800 shadow-2xs space-y-2.5">
-                <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
                   <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2 font-['Manrope',sans-serif]">
                     <span className="w-5 h-5 rounded-full bg-[#EA1D2C] text-white flex items-center justify-center text-[10px] font-bold">1</span>
                     <span className="text-sm">Ship by</span>
@@ -456,7 +456,7 @@ export default function QuoteCalculatorIsland({
 
               {/* STEP 2: SHIPPING ROUTE & FULFILLMENT (Clean Compact Selectors) */}
               <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-xl border border-red-100 dark:border-slate-800 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
                   <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2 font-['Manrope',sans-serif]">
                     <span className="w-5 h-5 rounded-full bg-[#EA1D2C] text-white flex items-center justify-center text-[10px] font-bold">2</span>
                     <span className="text-sm">Shipping Route &amp; Warehouses</span>
@@ -470,12 +470,12 @@ export default function QuoteCalculatorIsland({
                   </div>
                 </div>
 
-                {/* 2 Selectors per row on desktop/tablet, 1 on mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                {/* 2 Selectors: Origin Warehouse & Destination Country */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Selector 1: Origin Warehouse */}
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Origin Warehouse
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Origin Hub (China)
                     </label>
                     <ReferenceSelect
                       value={originCity}
@@ -490,7 +490,7 @@ export default function QuoteCalculatorIsland({
 
                   {/* Selector 2: Destination Country */}
                   <div>
-                    <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Destination Country
                     </label>
                     <ReferenceSelect
@@ -503,61 +503,12 @@ export default function QuoteCalculatorIsland({
                       placeholder="Select Destination Country"
                     />
                   </div>
-
-                  {/* Selector 3: Fulfillment Option */}
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Fulfillment Option
-                    </label>
-                    <ReferenceSelect
-                      value={fulfillmentType}
-                      onChange={(val) => handleFulfillmentChange(val as any)}
-                      options={availableFulfillments.map((opt) => ({
-                        value: opt.id,
-                        label: opt.label
-                      }))}
-                      placeholder="Select Fulfillment Option"
-                    />
-                  </div>
-
-                  {/* Selector 4: Destination City / Area / Hub */}
-                  <div>
-                    <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      {fulfillmentType === 'pickup' ? 'Pickup Hub / Depot' : 'Destination Area / City'}
-                    </label>
-                    <ReferenceSelect
-                      value={destCity}
-                      onChange={(val) => setDestCity(val)}
-                      options={availableCities.map((city) => ({
-                        value: city,
-                        label: city
-                      }))}
-                      placeholder="Select Destination City / Area"
-                      searchable={availableCities.length > 6}
-                    />
-                  </div>
                 </div>
-
-                {/* Optional Street Address when Doorstep or Courier is chosen */}
-                {fulfillmentType !== 'pickup' && (
-                  <div className="pt-0.5">
-                    <label className="block text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1">
-                      Delivery Street / Contact Address <span className="text-slate-400 font-normal">(Optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={destAddress}
-                      onChange={(e) => setDestAddress(e.target.value)}
-                      placeholder={`House, Road, Thana, or landmark address in ${destCity}...`}
-                      className="w-full h-[34px] px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C]"
-                    />
-                  </div>
-                )}
               </div>
 
               {/* STEP 3: PRODUCT DETAILS & CARGO WEIGHT */}
               <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-xl border border-red-100 dark:border-slate-800 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5">
                   <span className="flex items-center gap-2 font-['Manrope',sans-serif] font-bold text-sm">
                     <span className="w-5 h-5 rounded-full bg-[#EA1D2C] text-white flex items-center justify-center text-[10px] font-bold">3</span>
                     <span>Product Details &amp; Cargo Weight</span>
@@ -702,21 +653,24 @@ export default function QuoteCalculatorIsland({
                   </div>
                 </div>
 
-                {/* Sub-Section 2: Weight & Volume Details */}
+                {/* Sub-Section 2: Weight & Volume Details (Optional) */}
                 <div className="space-y-3 pt-1">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                      <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                      <path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-                    </svg>
-                    <span>Weight &amp; Volume Details</span>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-3.5 h-3.5 stroke-[2] text-[#EA1D2C]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                        <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                        <path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+                      </svg>
+                      <span>Weight &amp; Volume Details</span>
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">Optional</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Gross Weight
+                        Gross Weight <span className="text-slate-400 font-normal">(Opt)</span>
                       </label>
                       <div className="relative">
                         <input
@@ -724,8 +678,7 @@ export default function QuoteCalculatorIsland({
                           step="any"
                           value={weightKg}
                           onChange={(e) => setWeightKg(e.target.value)}
-                          placeholder="50"
-                          required
+                          placeholder="e.g. 50"
                           className="w-full h-9 pl-3 pr-9 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 font-mono font-bold text-slate-900 dark:text-white focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
                         />
                         <span className="absolute right-2.5 top-2.5 text-[10px] font-medium text-slate-400 select-none">
@@ -736,7 +689,7 @@ export default function QuoteCalculatorIsland({
 
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                        Volume
+                        Volume <span className="text-slate-400 font-normal">(Opt)</span>
                       </label>
                       <div className="relative">
                         <input
@@ -744,8 +697,7 @@ export default function QuoteCalculatorIsland({
                           step="any"
                           value={cbm}
                           onChange={(e) => setCbm(e.target.value)}
-                          placeholder="0.4"
-                          required
+                          placeholder="e.g. 0.4"
                           className="w-full h-9 pl-3 pr-11 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 font-mono font-bold text-slate-900 dark:text-white focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
                         />
                         <span className="absolute right-2.5 top-2.5 text-[10px] font-medium text-slate-400 select-none">
@@ -792,11 +744,11 @@ export default function QuoteCalculatorIsland({
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                         Additional Notes / Instructions
                       </label>
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1">
                         {['Garments', 'Fabrics', 'Electronics', 'Machinery'].map((cat) => (
                           <button
                             key={cat}
@@ -821,15 +773,18 @@ export default function QuoteCalculatorIsland({
               </div>
 
               {/* Official Recipient Details */}
-              <div className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs space-y-3">
-                <div className="text-xs font-semibold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5">
-                  Contact Information
+              <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-900 border-b border-slate-100 pb-2.5">
+                  <span className="font-['Manrope',sans-serif] font-bold text-sm">Contact Information</span>
+                  <span className="text-[10px] font-semibold text-[#EA1D2C] bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                    Direct Quote Notification
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Company or Person
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Company or Person <span className="text-[#EA1D2C]">*</span>
                     </label>
                     <input
                       type="text"
@@ -837,13 +792,13 @@ export default function QuoteCalculatorIsland({
                       value={guestName}
                       onChange={(e) => setGuestName(e.target.value)}
                       required
-                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 text-slate-900 dark:text-white font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
+                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-900 font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Official Email
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Official Email <span className="text-[#EA1D2C]">*</span>
                     </label>
                     <input
                       type="email"
@@ -851,13 +806,13 @@ export default function QuoteCalculatorIsland({
                       value={guestEmail}
                       onChange={(e) => setGuestEmail(e.target.value)}
                       required
-                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 text-slate-900 dark:text-white font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
+                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-900 font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Phone / WhatsApp
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Phone / WhatsApp <span className="text-[#EA1D2C]">*</span>
                     </label>
                     <input
                       type="tel"
@@ -865,7 +820,7 @@ export default function QuoteCalculatorIsland({
                       value={guestPhone}
                       onChange={(e) => setGuestPhone(e.target.value)}
                       required
-                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 text-slate-900 dark:text-white font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
+                      className="w-full h-9 px-3 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-900 font-medium focus:bg-white focus:border-[var(--color-brand-primary)] focus:ring-1 focus:ring-[var(--color-brand-primary)]/20 transition-none outline-none"
                     />
                   </div>
                 </div>
@@ -936,7 +891,7 @@ export default function QuoteCalculatorIsland({
                   </div>
                   <div className="flex justify-between text-slate-600">
                     <span>Route Corridor:</span>
-                    <span className="font-semibold text-slate-900">{originCity} → {destCity.split('(')[0].trim()}</span>
+                    <span className="font-semibold text-slate-900">{originCity} → {destCountry}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
                     <span>Product Item:</span>
@@ -975,11 +930,11 @@ export default function QuoteCalculatorIsland({
                     </div>
                   )}
                   <div className="flex justify-between text-slate-600">
-                    <span>Declared Volume:</span>
+                    <span>Chargeable Metric:</span>
                     <span className="font-semibold font-mono text-slate-900 tabular-nums">
                       {mode === 'sea'
-                        ? `${Math.max(numCbm, 0.5).toFixed(2)} CBM`
-                        : `${airChargeableKg.toFixed(1)} KG`}
+                        ? (numCbm > 0 ? `${numCbm.toFixed(2)} CBM` : 'Based on actual volume')
+                        : (numWeight > 0 || numCbm > 0 ? `${airChargeableKg.toFixed(1)} KG` : 'Based on intake weight')}
                     </span>
                   </div>
                   <div className="flex justify-between text-slate-600">
@@ -993,13 +948,9 @@ export default function QuoteCalculatorIsland({
                     <span className="font-semibold text-emerald-700">Full Brokerage Included</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>Fulfillment:</span>
-                    <span className="font-semibold text-slate-900 text-right max-w-[170px] truncate">
-                      {fulfillmentType === 'doorstep'
-                        ? `Doorstep Delivery (${destCity})`
-                        : fulfillmentType === 'courier'
-                        ? `Courier Delivery (${destCity})`
-                        : `Hub Pickup (${destCity.split('(')[0].trim()})`}
+                    <span>Delivery Option:</span>
+                    <span className="font-semibold text-slate-900 text-right">
+                      Doorstep Delivery ({destCountry})
                     </span>
                   </div>
                 </div>

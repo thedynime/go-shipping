@@ -315,3 +315,90 @@ export const systemSettings = mysqlTable('system_settings', {
   description: text('description'),
   updatedAt: timestamp('updated_at').default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
 });
+
+/**
+ * 17. Homepage Banners Table
+ * Dynamic hero carousel slides managed via Admin Panel
+ */
+export const homeBanners = mysqlTable('home_banners', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  badge: varchar('badge', { length: 255 }).notNull(),
+  badgeColor: varchar('badge_color', { length: 50 }).default('#EA1D2C'),
+  headlineBengali: varchar('headline_bengali', { length: 500 }).notNull(),
+  headlineAccent: varchar('headline_accent', { length: 500 }).notNull(),
+  subtitle: text('subtitle').notNull(),
+  primaryCtaText: varchar('primary_cta_text', { length: 100 }).notNull(),
+  primaryCtaLink: varchar('primary_cta_link', { length: 255 }).notNull(),
+  secondaryCtaText: varchar('secondary_cta_text', { length: 100 }),
+  secondaryCtaLink: varchar('secondary_cta_link', { length: 255 }),
+  features: json('features').$type<string[]>(),
+  imageUrl: varchar('image_url', { length: 1000 }).notNull(),
+  imageAlt: varchar('image_alt', { length: 255 }).notNull(),
+  taglineSmall: varchar('tagline_small', { length: 255 }),
+  displayOrder: int('display_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp('updated_at').default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
+});
+
+/**
+ * 18. Client Testimonials Table
+ * Verified client reviews & ratings managed via Admin Panel
+ */
+export const testimonials = mysqlTable('testimonials', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  clientName: varchar('client_name', { length: 255 }).notNull(),
+  roleOrCompany: varchar('role_or_company', { length: 255 }).notNull(),
+  location: varchar('location', { length: 255 }),
+  quote: text('quote').notNull(),
+  rating: int('rating').notNull().default(5),
+  initial: varchar('initial', { length: 10 }),
+  tag: varchar('tag', { length: 100 }),
+  dateText: varchar('date_text', { length: 100 }),
+  avatarUrl: varchar('avatar_url', { length: 1000 }),
+  displayOrder: int('display_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp('updated_at').default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
+});
+
+/**
+ * 19. All-in-One Operations & POS Ledger Table
+ * High-velocity POS-style sourcing purchase and freight operations terminal
+ */
+export const posLedger = mysqlTable('pos_ledger', {
+  id: varchar('id', { length: 36 }).primaryKey(),
+  orderId: varchar('order_id', { length: 50 }).notNull().unique(),
+  orderDate: varchar('order_date', { length: 30 }),
+  cnDate: varchar('cn_date', { length: 30 }),
+  bdDate: varchar('bd_date', { length: 30 }),
+  customerName: varchar('customer_name', { length: 255 }).notNull(),
+  mobileNo: varchar('mobile_no', { length: 50 }),
+  importerClient: varchar('importer_client', { length: 100 }),
+  shippingMark: varchar('shipping_mark', { length: 100 }),
+  websiteOrderNo: varchar('website_order_no', { length: 100 }),
+  itemDetails: text('item_details').notNull(),
+  chinaCourierTracking: varchar('china_courier_tracking', { length: 100 }),
+  currentStatus: varchar('current_status', { length: 50 }).default('Processing'),
+  supplierName: varchar('supplier_name', { length: 100 }),
+  quantity: int('quantity').default(1),
+  unitPriceRmb: decimal('unit_price_rmb', { precision: 10, scale: 2 }).default('0.00'),
+  totalPurchaseRmb: decimal('total_purchase_rmb', { precision: 10, scale: 2 }).default('0.00'),
+  rmbRateBdt: decimal('rmb_rate_bdt', { precision: 10, scale: 2 }).default('19.50'),
+  purchaseCostBdt: decimal('purchase_cost_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  purchaseCostPaidBdt: decimal('purchase_cost_paid_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  purchaseCostDueBdt: decimal('purchase_cost_due_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  serviceType: varchar('service_type', { length: 50 }).default('Sourcing & Shipping'),
+  cnWeightKg: decimal('cn_weight_kg', { precision: 10, scale: 2 }).default('0.00'),
+  bdWeightKg: decimal('bd_weight_kg', { precision: 10, scale: 2 }).default('0.00'),
+  shippingRatePerKgBdt: decimal('shipping_rate_per_kg_bdt', { precision: 10, scale: 2 }).default('0.00'),
+  internationalFreightBdt: decimal('international_freight_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  totalBillBdt: decimal('total_bill_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  paymentStatus: varchar('payment_status', { length: 30 }).default('Due'),
+  bdCourierName: varchar('bd_courier_name', { length: 50 }),
+  bdTrackingNo: varchar('bd_tracking_no', { length: 100 }),
+  remark: text('remark'),
+  profitEstimateBdt: decimal('profit_estimate_bdt', { precision: 12, scale: 2 }).default('0.00'),
+  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp('updated_at').default(sql`CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`).notNull(),
+});

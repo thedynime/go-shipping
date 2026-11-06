@@ -1,0 +1,830 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';
+import { getSiteOrigin } from '../server/utils/domain';
+
+const siteOrigin = getSiteOrigin(Astro.request);
+const canonicalUrl = `${siteOrigin}/sourcing`;
+
+const sourcingSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "@id": `${canonicalUrl}#service`,
+      "url": canonicalUrl,
+      "name": "চায়না প্রোডাক্ট সোর্সিং ও শিপিং সার্ভিস — GoShipping",
+      "provider": {
+        "@type": "Organization",
+        "name": "GoShipping Logistics",
+        "url": siteOrigin,
+        "telephone": "+8801797252627",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "43/31, Near of SabujKanon Jame Masjid, Sabujbagh",
+          "addressLocality": "Dhaka",
+          "postalCode": "1214",
+          "addressCountry": "BD"
+        }
+      },
+      "areaServed": "Bangladesh",
+      "description": "চায়না থেকে সরাসরি ফ্যাক্টরি রেটে পণ্য সোর্সিং, সাপ্লায়ার ভেরিফিকেশন, কোয়ালিটি চেক, আলিপে পেমেন্ট এবং কাস্টমস ক্লিয়ারেন্স সহ বাংলাদেশে ডোর ডেলিভারি সেবা।"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": siteOrigin },
+        { "@type": "ListItem", "position": 2, "name": "সোর্সিং", "item": canonicalUrl }
+      ]
+    }
+  ]
+};
+---
+
+<PublicLayout
+  title="চীন থেকে পণ্য সোর্সিং ও ডেলিভারি | চায়না ফ্যাক্টরি ডিরেক্ট — GoShipping"
+  description="1688, Taobao বা সরাসরি চায়না ফ্যাক্টরি থেকে পণ্য সোর্সিং, দরদাম, কোয়ালিটি চেক ও কাস্টমস সহ বাংলাদেশে সম্পূর্ণ ডোর ডেলিভারি। সরাসরি কল করুন: 01797252627"
+  keywords="china product sourcing bangladesh, 1688 product sourcing bd, taobao sourcing bd, china factory direct bangladesh, go shipping sourcing"
+  currentPath="/sourcing"
+  image="/og/og-sourcing.png"
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={JSON.stringify(sourcingSchema)} />
+  </Fragment>
+
+  <!-- 01. Hero Section (Ad-Optimized Above-the-Fold Light Theme) -->
+  <section class="relative bg-gradient-to-b from-white via-red-50/20 to-slate-50/50 text-slate-900 py-10 sm:py-14 lg:py-18 border-b border-slate-200 overflow-hidden">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- Left: Hero Copy -->
+        <div class="lg:col-span-7 space-y-4 sm:space-y-5">
+          <!-- Tag Badge -->
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 border border-red-200 text-[#EA1D2C]">
+            <span class="w-2 h-2 rounded-full bg-[#EA1D2C] animate-pulse"></span>
+            <span>চায়না টু বাংলাদেশ প্রফেশনাল সোর্সিং সেবা</span>
+          </div>
+
+          <!-- Main Catchy Headline -->
+          <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-['Manrope',sans-serif] leading-[1.2] text-slate-900">
+            চীন থেকে সরাসরি <span class="text-[#EA1D2C]">ফ্যাক্টরি রেটে</span> পণ্য সোর্সিং ও ঝামেলামুক্ত ডেলিভারি
+          </h1>
+
+          <!-- Value Statement -->
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed max-w-2xl">
+            1688, Taobao, Alibaba বা সরাসরি চায়না উৎপাদকদের কাছ থেকে সঠিক সাপ্লায়ার অনুসন্ধান, দাম নেগোসিয়েশন, ওয়্যারহাউস কোয়ালিটি চেকিং ও কাস্টমস ক্লিয়ারেন্স সহ সম্পূর্ণ ডোর ডেলিভারি এখন এক ছাদের নিচে।
+          </p>
+
+          <!-- Key Trust Badges -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-2 text-xs">
+            <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <span class="block text-slate-500 text-[10px]">সাপ্লায়ার নেটওয়ার্ক</span>
+              <strong class="text-slate-900 font-bold text-xs sm:text-sm">৫০০+ ভেরিফায়েড ফ্যাক্টরি</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <span class="block text-slate-500 text-[10px]">গুয়াংজু ওয়্যারহাউস</span>
+              <strong class="text-slate-900 font-bold text-xs sm:text-sm">১০০% কোয়ালিটি চেক</strong>
+            </div>
+            <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs col-span-2 sm:col-span-1">
+              <span class="block text-slate-500 text-[10px]">কাস্টমস ও শুল্ক</span>
+              <strong class="text-slate-900 font-bold text-xs sm:text-sm">সম্পূর্ণ অল-ইনক্লুসিভ</strong>
+            </div>
+          </div>
+
+          <!-- Call to Action Buttons -->
+          <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <a
+              href="#sourcing-form"
+              class="min-h-[44px] flex items-center justify-center px-6 py-3 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-xs gap-2 text-center"
+            >
+              <span>ফ্রি সোর্সিং রিকোয়েস্ট পাঠান</span>
+              <svg class="w-4 h-4 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+
+            <a
+              href="https://wa.me/8801797252627?text=Hello%20GoShipping,%20I%20want%20to%20source%20products%20from%20China."
+              target="_blank"
+              rel="noopener noreferrer"
+              class="min-h-[44px] flex items-center justify-center px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-colors gap-2 text-center"
+            >
+              <svg class="w-4 h-4 fill-currentColor" viewBox="0 0 24 24">
+                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.23 8.23 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.12-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.12.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.44.54.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.12-.23-.19-.48-.31z" />
+              </svg>
+              <span>হোয়াটসঅ্যাপে কথা বলুন</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Ad Hero Visual Card -->
+        <div class="lg:col-span-5">
+          <div class="p-5 sm:p-6 rounded-2xl bg-white border border-red-100 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <span class="text-xs font-bold text-slate-900 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>গুয়াংজু ও ইইউ হাব থেকে সরাসরি</span>
+              </span>
+              <span class="text-[10px] text-[#EA1D2C] font-mono font-bold bg-red-50 px-2 py-0.5 rounded border border-red-200">লাইভ রেসপন্স</span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100">
+                <div class="w-9 h-9 rounded-lg bg-[#EA1D2C] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                  ১
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900">১০০% ভেরিফায়েড সাপ্লায়ার</h4>
+                  <p class="text-[11px] text-slate-500">কোনো মধ্যস্বত্বভোগী ছাড়া সরাসরি প্রকৃত প্রস্তুতকারকের সাথে লেনদেন।</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100">
+                <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                  ২
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900">স্যাম্পল ও ফিজিক্যাল ইন্সপেকশন</h4>
+                  <p class="text-[11px] text-slate-500">পণ্য শিপমেন্টের আগে চায়নায় আমাদের নিজস্ব লোক দিয়ে মান যাচাই।</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100">
+                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                  ৩
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900">বাংলাদেশি টাকায় পেমেন্ট সেটেলমেন্ট</h4>
+                  <p class="text-[11px] text-slate-500">চাইনিজ আরএমবি বা ডলারে লিগ্যাল ওয়েতে সাপ্লায়ারকে পেমেন্ট প্রদান।</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 p-3 rounded-xl bg-red-50 border border-red-100 text-center">
+              <p class="text-xs text-slate-700">
+                জরুরি প্রয়োজনে আমাদের হটলাইন: <strong class="text-[#EA1D2C] font-mono text-sm">01797252627</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 02. Problem Awareness Section (আপনার সমস্যাগুলো আমরা বুঝি) -->
+  <section class="py-14 sm:py-16 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/CHALLENGES</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          চীন থেকে পণ্য আমদানিতে আপনি কি এই সমস্যায় পড়ছেন?
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600">
+          প্রপার গাইডেন্স ও নির্ভরযোগ্য লোকাল পার্টনার না থাকলে আন্তর্জাতিক সোর্সিংয়ে লোকসানের ঝুঁকি থাকে।
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+          <div class="w-9 h-9 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">নকল পণ্য বা নিম্নমানের আশঙ্কা</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            ছবি বা ক্যাটালগে এক কোয়ালিটি দেখে অর্ডার করে ডেলিভারির সময় ভাঙাচোরা বা নিম্নমানের পণ্য পাওয়ার ঝুঁকি।
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+          <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">ডলার ও সাপ্লায়ার পেমেন্ট জটিলতা</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            চাইনিজ সাপ্লায়ারদের ব্যাংক একাউন্ট বা উইচ্যাট/আলিপেতে নিরাপদে ও সঠিক রেটে পেমেন্ট পাঠানোর ঝামেলা।
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+          <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">ভাষাগত সমস্যা ও মিসকমিউনিকেশন</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            চাইনিজ ভাষা না জানার কারণে সঠিক টেকনিক্যাল স্পেসিফিকেশন ও সর্বোত্তম রেটে দরকষাকষি করতে না পারা।
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+          <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">কাস্টমস শুল্ক ও হিডেন খরচ</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            বাংলাদেশে পণ্য পৌঁছানোর পর এয়ারপোর্ট বা পোর্টের অপ্রত্যাশিত ক্লিয়ারেন্স চার্জ ও আমলাতান্ত্রিক দীর্ঘসূত্রিতা।
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 03. Core Services (আমাদের সমাধান ও সেবাসমূহ) -->
+  <section class="py-14 sm:py-20 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/OUR EXPERTISE</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          GoShipping-এর সম্পূর্ণ সোর্সিং সেবা
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600">
+          চীন থেকে পণ্য নির্বাচন থেকে শুরু করে আপনার গোডাউনে ডেলিভারি পর্যন্ত প্রতিটি ধাপে আমাদের ডেডিকেটেড টিম কাজ করে।
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Service 1 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">ফ্যাক্টরি ও সাপ্লায়ার ভেরিফিকেশন</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            গুয়াংজু ও ইইউতে আমাদের স্থানীয় প্রতিনিধি দল প্রস্তুতকারকের ট্রেড লাইসেন্স, ফ্যাক্টরি সেটআপ ও পূর্ববর্তী ইতিহাস যাচাই করে নির্ভরযোগ্যতা নিশ্চিত করে।
+          </p>
+        </div>
+
+        <!-- Service 2 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">পাইকারি মূল্যে দরকষাকষি (Price Negotiation)</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            আমাদের স্থানীয় চাইনিজ টিম সরাসরি উৎপাদকের সাথে নেটিভ ভাষায় আলোচনা করে সর্বোচ্চ কোয়ান্টিটি ডিসকাউন্ট ও পাইকারি মূল্য আদায় করে।
+          </p>
+        </div>
+
+        <!-- Service 3 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">স্যাম্পল কালেকশন ও কোয়ালিটি চেক</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            বাল্ক অর্ডারের পূর্বে স্যাম্পল সংগ্রহ করে আপনাকে ছবি ও ভিডিও রিভিউ পাঠানো হয়। কার্টনে মাল রিসিভের সময় ডিফেক্ট আছে কি না পরীক্ষা করা হয়।
+          </p>
+        </div>
+
+        <!-- Service 4 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <line x1="12" y1="8" x2="12" y2="16" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">নিরাপদ সাপ্লায়ার পেমেন্ট (RMB/Alipay)</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            বাংলাদেশে টাকায় পেমেন্ট গ্রহণ করে আমরা চীনে সাপ্লায়ারের ব্যাংক অ্যাকাউন্ট বা আলিপেতে নিরাপদে অর্থ স্থানান্তর করি। কোনো পেমেন্ট হারানোর ঝুঁকি নেই।
+          </p>
+        </div>
+
+        <!-- Service 5 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">ওয়্যারহাউস কনসোলিডেশন ও রি-প্যাকিং</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            বিভিন্ন ফ্যাক্টরি থেকে আসা মালামাল গুয়াংজু গুদামে একসাথে করে ভলিউম অপ্টিমাইজড সুরক্ষিত প্যাকেজিং ও উডেন ক্র্যাটিং সুবিধা।
+          </p>
+        </div>
+
+        <!-- Service 6 -->
+        <div class="p-6 rounded-xl border border-slate-200 bg-white hover:border-red-200 transition-colors shadow-2xs space-y-3">
+          <div class="w-10 h-10 rounded-lg bg-red-50 text-[#EA1D2C] flex items-center justify-center font-bold">
+            <svg class="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="1" y="3" width="15" height="13" />
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">কাস্টমস ক্লিয়ারেন্স ও ডোর ডেলিভারি</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            এয়ার বা সি ফ্রেইটের মাধ্যমে সমস্ত শুল্ক ও ট্যাক্স পরিশোধ করে নিরাপদে আপনার অফিস, দোকান বা বাসায় ডেলিভারি পৌঁছে দেওয়া হয়।
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04. 5-Step Sourcing Workflow (৫টি সহজ ধাপে পণ্য সোর্সিং) -->
+  <section class="py-14 sm:py-20 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/PROCESS</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          ৫টি সহজ ধাপে চীন থেকে পণ্য আমদানি
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600">
+          কোনো জটিলতা ছাড়া খুব সহজে আপনার পছন্দসই পণ্য বাংলাদেশে নিয়ে আসুন।
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <!-- Step 1 -->
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 relative">
+          <div class="w-7 h-7 rounded-full bg-[#EA1D2C] text-white font-bold text-xs flex items-center justify-center">
+            ১
+          </div>
+          <h4 class="text-xs font-bold text-slate-900">পণ্যের তথ্য দিন</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            পণ্যটির ছবি, 1688 বা আলিবাবার লিংক এবং সম্ভাব্য পরিমাণ আমাদের জানান।
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 relative">
+          <div class="w-7 h-7 rounded-full bg-[#EA1D2C] text-white font-bold text-xs flex items-center justify-center">
+            ২
+          </div>
+          <h4 class="text-xs font-bold text-slate-900">ফ্যাক্টরি কোটেশন</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            ২৪-৪৮ ঘণ্টার মধ্যে সেরা ফ্যাক্টরি খুঁজে সেরা পাইকারি মূল্যের কোটেশন প্রদান।
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 relative">
+          <div class="w-7 h-7 rounded-full bg-[#EA1D2C] text-white font-bold text-xs flex items-center justify-center">
+            ৩
+          </div>
+          <h4 class="text-xs font-bold text-slate-900">অর্ডার ও পেমেন্ট</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            দাম ও শর্তাবলী পছন্দ হলে বাংলাদেশি টাকায় নিরাপদ ডিপোজিট সম্পন্ন করুন।
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 relative">
+          <div class="w-7 h-7 rounded-full bg-[#EA1D2C] text-white font-bold text-xs flex items-center justify-center">
+            ৪
+          </div>
+          <h4 class="text-xs font-bold text-slate-900">কোয়ালিটি চেক</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            আমাদের চায়না ওয়্যারহাউসে পণ্য রিসিভ, ফটো/ভিডিও ও কার্টনিং সম্পূর্ণকরণ।
+          </p>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 relative">
+          <div class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
+            ৫
+          </div>
+          <h4 class="text-xs font-bold text-slate-900">ডোর ডেলিভারি</h4>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            কাস্টমস ক্লিয়ার করে বাংলাদেশে আপনার নির্ধারিত ঠিকানায় মালামাল হস্তান্তর।
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05. Major China Sourcing Hubs (চীনের কোন কোন মার্কেট থেকে পণ্য আনা যাবে?) -->
+  <section class="py-14 sm:py-16 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/CHINA MARKETS</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          যেসব চাইনিজ হাব ও মার্কেট থেকে সোর্সিং করি
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600">
+          চীনের প্রধান বাণিজ্যিক শহরগুলোতে আমাদের ফিজিক্যাল টিম সরাসরি উপস্থিত।
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Guangzhou (গুয়াংজু)</h3>
+            <span class="text-[10px] font-mono font-bold text-[#EA1D2C] bg-red-50 px-2 py-0.5 rounded border border-red-200">সেন্ট্রাল হাব</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            রেডিমেড গার্মেন্টস, টেক্সটাইল, লাগেজ ব্যাগ, জুতা, কসমেটিকস ও ফ্যাশন সামগ্রী।
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Yiwu (ইইউ)</h3>
+            <span class="text-[10px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">হোলসেল সিটি</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            দৈনন্দিন ব্যবহার্য পণ্য, প্লাস্টিক পণ্য, খেলনা, স্টেশনারি ও উপহার সামগ্রী।
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Shenzhen (শেনজেন)</h3>
+            <span class="text-[10px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">টেক ক্যাপিটাল</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            মোবাইল এক্সেসরিজ, ইলেকট্রনিক গ্যাজেট, কম্পিউটার পার্টস, এলইডি ও স্মার্ট ডিভাইস।
+          </p>
+        </div>
+
+        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900">Foshan & Ningbo</h3>
+            <span class="text-[10px] font-mono font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">ইন্ডাস্ট্রিয়াল হাব</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            আসবাবপত্র, স্যানিটারি, হার্ডওয়্যার টুলস, কারখানা মেশিনারি ও লাইটিং আইটেম।
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06. Lead Capture Form Section (সরাসরি সোর্সিং ইনকোয়ারি ফর্ম) -->
+  <section id="sourcing-form" class="py-14 sm:py-20 bg-gradient-to-b from-white via-red-50/20 to-slate-50 border-b border-slate-200 scroll-mt-12">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="text-center space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/GET STARTED</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          আপনার কাঙ্ক্ষিত পণ্যের সোর্সিং রিকোয়েস্ট পাঠান
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
+          নিচের ফর্মটি পূরণ করে পাঠান। আমাদের সোর্সিং স্পেশালিস্ট টিম অতি দ্রুত আপনার সাথে যোগাযোগ করবে।
+        </p>
+      </div>
+
+      <!-- Main Interactive Lead Card -->
+      <div class="bg-white rounded-2xl border border-red-100 shadow-sm p-6 sm:p-8 space-y-6">
+        
+        <div id="lead-alert-box" class="hidden p-3 rounded-lg text-xs font-medium"></div>
+
+        <div id="lead-success-box" class="hidden p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+            <svg class="w-6 h-6 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-slate-900">ধন্যবাদ! আপনার সোর্সিং রিকোয়েস্ট জমা হয়েছে</h3>
+          <p class="text-xs text-slate-600 max-w-md mx-auto" id="lead-success-msg">
+            আমাদের সোর্সিং কনসালটেন্ট দ্রুত আপনার হোয়াটসঅ্যাপে যোগাযোগ করে ফ্যাক্টরি রেট ও বিস্তারিত তথ্য জানাবে।
+          </p>
+          <div class="pt-2">
+            <a
+              id="whatsapp-followup-link"
+              href="https://wa.me/8801797252627"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2"
+            >
+              <span>সরাসরি হোয়াটসঅ্যাপে চ্যাট শুরু করুন →</span>
+            </a>
+          </div>
+        </div>
+
+        <form id="lead-intake-form" class="space-y-4 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Full Name -->
+            <div>
+              <label for="leadName" class="block font-semibold text-slate-700 mb-1">
+                আপনার নাম <span class="text-[#EA1D2C]">*</span>
+              </label>
+              <input
+                id="leadName"
+                type="text"
+                required
+                placeholder="যেমন: তানভীর আহমেদ"
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              />
+            </div>
+
+            <!-- WhatsApp Number -->
+            <div>
+              <label for="leadPhone" class="block font-semibold text-slate-700 mb-1">
+                মোবাইল / হোয়াটসঅ্যাপ নম্বর <span class="text-[#EA1D2C]">*</span>
+              </label>
+              <input
+                id="leadPhone"
+                type="tel"
+                required
+                placeholder="017XXXXXXXX"
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Product Name -->
+            <div>
+              <label for="leadProductName" class="block font-semibold text-slate-700 mb-1">
+                পণ্যের নাম বা বিবরণ <span class="text-[#EA1D2C]">*</span>
+              </label>
+              <input
+                id="leadProductName"
+                type="text"
+                required
+                placeholder="যেমন: স্মার্টওয়াচ / উইমেন হ্যান্ডব্যাগ"
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              />
+            </div>
+
+            <!-- Estimated Quantity -->
+            <div>
+              <label for="leadQty" class="block font-semibold text-slate-700 mb-1">
+                সম্ভাব্য পরিমাণ (Estimated Quantity)
+              </label>
+              <input
+                id="leadQty"
+                type="text"
+                placeholder="যেমন: 500 Pcs বা 200 KG"
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Source Platform -->
+            <div>
+              <label for="leadPlatform" class="block font-semibold text-slate-700 mb-1">
+                পণ্যটির সোর্স বা প্ল্যাটফর্ম
+              </label>
+              <select
+                id="leadPlatform"
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              >
+                <option value="1688">1688.com (ফ্যাক্টরি হোলসেল)</option>
+                <option value="Taobao">Taobao.com</option>
+                <option value="Alibaba">Alibaba</option>
+                <option value="Direct Factory">সরাসরি চাইনিজ ফ্যাক্টরি</option>
+                <option value="Sample Based">আমার কাছে স্যাম্পল আছে</option>
+                <option value="Not Sure">নির্ধারিত নেই (পরামর্শ চাই)</option>
+              </select>
+            </div>
+
+            <!-- Product Link -->
+            <div>
+              <label for="leadProductUrl" class="block font-semibold text-slate-700 mb-1">
+                পণ্যের রেফারেন্স লিংক (যদি থাকে)
+              </label>
+              <input
+                id="leadProductUrl"
+                type="url"
+                placeholder="https://detail.1688.com/offer/..."
+                class="w-full h-10 px-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label for="leadNotes" class="block font-semibold text-slate-700 mb-1">
+              অতিরিক্ত কোনো স্পেসিফিকেশন বা চাহিদা
+            </label>
+            <textarea
+              id="leadNotes"
+              rows="3"
+              placeholder="রং, ম্যাটেরিয়াল, ব্র্যান্ড লোগো প্রিন্টিং বা বিশেষ কোনো রিকোয়ারমেন্ট..."
+              class="w-full p-3 rounded-lg border border-slate-300 bg-slate-50/50 text-slate-900 font-medium focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C] outline-none resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id="lead-submit-btn"
+            class="w-full h-12 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] active:bg-[#B7101C] text-white font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+          >
+            <span>সোর্সিং অনুসন্ধান পাঠান (Free Consultation) →</span>
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 07. Sourcing FAQ Accordion (সচরাচর জিজ্ঞাসিত প্রশ্ন) -->
+  <section class="py-14 sm:py-16 bg-white border-b border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="text-center space-y-2">
+        <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/FAQ</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
+          সোর্সিং সম্পর্কিত সাধারণ প্রশ্নোত্তর
+        </h2>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <details class="group p-4 rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white open:border-red-200 transition-colors">
+          <summary class="font-bold text-slate-900 cursor-pointer flex items-center justify-between select-none">
+            <span>১. সোর্সিংয়ের জন্য কী কী তথ্য আপনাদের প্রদান করতে হবে?</span>
+            <span class="text-[#EA1D2C] font-bold group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="text-slate-600 mt-2.5 leading-relaxed text-xs">
+            আপনি যে পণ্যটি আমদানি করতে চান তার স্পষ্ট ছবি, 1688 বা আলিবাবা ওয়েবসাইটের লিংক (যদি থাকে) এবং আপনার সম্ভাব্য অর্ডারের পরিমাণ জানালেই আমাদের চায়না টিম দ্রুত ফ্যাক্টরি খুঁজে সেরা রেট সংগ্রহ করতে পারে।
+          </p>
+        </details>
+
+        <details class="group p-4 rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white open:border-red-200 transition-colors">
+          <summary class="font-bold text-slate-900 cursor-pointer flex items-center justify-between select-none">
+            <span>২. পণ্যের মান (Quality) কীভাবে নিশ্চিত করেন?</span>
+            <span class="text-[#EA1D2C] font-bold group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="text-slate-600 mt-2.5 leading-relaxed text-xs">
+            প্রয়োজনে প্রথমে স্যাম্পল সংগ্রহ করে আপনাকে ভিডিও ও পিকচার দিয়ে কনফার্ম করা হয়। বাল্ক প্রোডাকশন সম্পন্ন হওয়ার পর পণ্য আমাদের গুয়াংজু গুদামে পৌঁছালে ডিফেক্ট আছে কি না তা ফিজিক্যালি চেক করে তবেই বাংলাদেশে শিপমেন্ট করা হয়।
+          </p>
+        </details>
+
+        <details class="group p-4 rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white open:border-red-200 transition-colors">
+          <summary class="font-bold text-slate-900 cursor-pointer flex items-center justify-between select-none">
+            <span>৩. সাপ্লায়ারের পেমেন্ট কীভাবে দিতে হয়?</span>
+            <span class="text-[#EA1D2C] font-bold group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="text-slate-600 mt-2.5 leading-relaxed text-xs">
+            আপনাকে কোনো বৈদেশিক মুদ্রা বা ডলার খোঁজার প্রয়োজন নেই। আপনি বাংলাদেশে আমাদের ব্যাংক অ্যাকাউন্ট বা নিরাপদ মাধ্যমে টাকায় পেমেন্ট করবেন, আমরা সরাসরি চীনে প্রস্তুতকারকের কাছে আরএমবি (RMB) বা আলিপেতে পেমেন্ট সেটেল করব।
+          </p>
+        </details>
+
+        <details class="group p-4 rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white open:border-red-200 transition-colors">
+          <summary class="font-bold text-slate-900 cursor-pointer flex items-center justify-between select-none">
+            <span>৪. কাস্টমস ট্যাক্স বা ক্লিয়ারেন্সের দায়িত্ব কার?</span>
+            <span class="text-[#EA1D2C] font-bold group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="text-slate-600 mt-2.5 leading-relaxed text-xs">
+            সম্পূর্ণ কাস্টমস ট্যাক্স ও ক্লিয়ারেন্সের দায়িত্ব GoShipping-এর। আমাদের কোটেশনের মধ্যে সমস্ত ট্যাক্স ও ভ্যাট অন্তর্ভুক্ত থাকে, ফলে বাংলাদেশে পণ্য পৌঁছানোর পর কোনো অতিরিক্ত গোপন চার্জের মুখোমুখি হতে হয় না।
+          </p>
+        </details>
+
+        <details class="group p-4 rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white open:border-red-200 transition-colors">
+          <summary class="font-bold text-slate-900 cursor-pointer flex items-center justify-between select-none">
+            <span>৫. ডেলিভারি হতে কত দিন সময় লাগে?</span>
+            <span class="text-[#EA1D2C] font-bold group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <p class="text-slate-600 mt-2.5 leading-relaxed text-xs">
+            এয়ার কার্গো (আকাশপথে) পণ্য পাঠানো হলে সাধারণত গুয়াংজু ফ্লাইট থেকে ৭ থেকে ১৪ কার্যদিবসের মধ্যে এবং সি কার্গো (সমুদ্রপথে) পণ্য পাঠালে ৩০ থেকে ৪৫ কার্যদিবসের মধ্যে বাংলাদেশে আপনার গোডাউনে ডেলিভারি পৌঁছে যায়।
+          </p>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 08. Sticky Contact Bar for Mobile Ad Traffic -->
+  <div class="fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 p-3 sm:hidden z-40 shadow-lg flex items-center justify-between gap-2">
+    <div class="min-w-0">
+      <span class="block text-[10px] text-slate-500 truncate">সরাসরি সোর্সিং কনসালটেন্ট:</span>
+      <strong class="text-xs text-slate-900 font-mono font-bold">01797252627</strong>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <a
+        href="https://wa.me/8801797252627?text=Hello%20GoShipping,%20I%20want%20to%20source%20products%20from%20China."
+        target="_blank"
+        rel="noopener noreferrer"
+        class="px-3 py-2 rounded-md bg-emerald-600 text-white font-bold text-xs inline-flex items-center gap-1"
+      >
+        <span>WhatsApp</span>
+      </a>
+      <a
+        href="#sourcing-form"
+        class="px-3 py-2 rounded-md bg-[#EA1D2C] text-white font-bold text-xs"
+      >
+        <span>কোটেশন চান</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Client-side script for lead form submission -->
+  <script>
+    const form = document.getElementById('lead-intake-form');
+    const submitBtn = document.getElementById('lead-submit-btn');
+    const alertBox = document.getElementById('lead-alert-box');
+    const successBox = document.getElementById('lead-success-box');
+    const successMsg = document.getElementById('lead-success-msg');
+    const waLink = document.getElementById('whatsapp-followup-link');
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (alertBox) {
+        alertBox.classList.add('hidden');
+        alertBox.className = 'hidden p-3 rounded-lg text-xs font-medium';
+      }
+
+      const name = (document.getElementById('leadName') as HTMLInputElement)?.value?.trim();
+      const phone = (document.getElementById('leadPhone') as HTMLInputElement)?.value?.trim();
+      const productName = (document.getElementById('leadProductName') as HTMLInputElement)?.value?.trim();
+      const estimatedQty = (document.getElementById('leadQty') as HTMLInputElement)?.value?.trim();
+      const targetPlatform = (document.getElementById('leadPlatform') as HTMLSelectElement)?.value;
+      const productUrl = (document.getElementById('leadProductUrl') as HTMLInputElement)?.value?.trim();
+      const notes = (document.getElementById('leadNotes') as HTMLTextAreaElement)?.value?.trim();
+
+      if (!name || !phone || !productName) {
+        if (alertBox) {
+          alertBox.textContent = 'অনুগ্রহ করে লাল তারকা (*) চিহ্নিত সব তথ্য সঠিকভাবে পূরণ করুন।';
+          alertBox.className = 'p-3 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200 block';
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        (submitBtn as HTMLButtonElement).disabled = true;
+        submitBtn.innerHTML = 'পাঠানো হচ্ছে…';
+      }
+
+      try {
+        const res = await fetch('/api/sourcing/inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone,
+            productName,
+            estimatedQty,
+            targetPlatform,
+            productUrl,
+            notes
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'রিকোয়েস্ট সাবমিট করতে সমস্যা হয়েছে');
+        }
+
+        form.classList.add('hidden');
+        if (successBox) successBox.classList.remove('hidden');
+        if (successMsg) {
+          successMsg.textContent = `${name}, আপনার রিকোয়েস্ট (${data.leadRef}) আমাদের সোর্সিং টিমের কাছে পৌঁছেছে। অতি দ্রুত আপনার নম্বরে (${phone}) যোগাযোগ করা হবে।`;
+        }
+        if (waLink) {
+          const waText = encodeURIComponent(`Hello GoShipping, I submitted a sourcing request [${data.leadRef}] for ${productName} (${estimatedQty || 'Qty: TBD'}). Please review.`);
+          (waLink as HTMLAnchorElement).href = `https://wa.me/8801797252627?text=${waText}`;
+        }
+
+        // Fire multi-platform Ad Pixel conversion tracking (Meta, TikTok, Google Analytics)
+        if (typeof window !== 'undefined' && (window as any).goShippingTrack) {
+          (window as any).goShippingTrack('Lead', {
+            lead_ref: data.leadRef,
+            service: 'China Sourcing',
+            product_name: productName,
+            estimated_qty: estimatedQty,
+            source_platform: targetPlatform
+          });
+        }
+      } catch (err: any) {
+        if (alertBox) {
+          alertBox.textContent = err.message || 'একটি ত্রুটি ঘটেছে। দয়া করে পুনরায় চেষ্টা করুন অথবা সরাসরি হোয়াটসঅ্যাপে যোগাযোগ করুন।';
+          alertBox.className = 'p-3 rounded-lg text-xs font-medium bg-red-50 text-red-700 border border-red-200 block';
+        }
+        if (submitBtn) {
+          (submitBtn as HTMLButtonElement).disabled = false;
+          submitBtn.innerHTML = 'সোর্সিং অনুসন্ধান পাঠান (Free Consultation) →';
+        }
+      }
+    });
+  </script>
+</PublicLayout>

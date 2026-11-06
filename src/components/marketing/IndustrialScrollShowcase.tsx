@@ -52,6 +52,83 @@ const SERVICES: ServiceItem[] = [
   }
 ];
 
+const getServiceHref = (id: string) => {
+  switch (id) {
+    case 'air':
+      return '/services/air-shipment';
+    case 'ocean':
+      return '/services/sea-shipment';
+    case 'door-to-door':
+      return '/services/door-to-door';
+    case 'customs':
+      return '/services/customs-clearance';
+    case 'warehousing':
+      return '/services/china-warehouse';
+    case 'support':
+      return '/contact';
+    default:
+      return '/services';
+  }
+};
+
+function renderServiceIcon(icon: string, className = 'w-7 h-7') {
+  if (icon === 'plane') {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z" />
+      </svg>
+    );
+  }
+  if (icon === 'ship') {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
+        <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76" />
+        <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6" />
+        <line x1="12" y1="1" x2="12" y2="5" />
+      </svg>
+    );
+  }
+  if (icon === 'scales') {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+        <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+        <path d="M7 21h10" />
+        <path d="M12 3v18" />
+        <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+      </svg>
+    );
+  }
+  if (icon === 'warehouse') {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" />
+        <path d="M6 18h12" />
+        <path d="M6 14h12" />
+      </svg>
+    );
+  }
+  if (icon === 'crane') {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M2 22h20" />
+        <path d="M6 22V2l10 5" />
+        <path d="m16 7 4 2v5l-4-2" />
+      </svg>
+    );
+  }
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
+      <path d="M15 18H9" />
+      <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
+      <circle cx="17" cy="18" r="2" />
+      <circle cx="7" cy="18" r="2" />
+    </svg>
+  );
+}
+
 export const IndustrialScrollShowcase: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -131,11 +208,115 @@ export const IndustrialScrollShowcase: React.FC = () => {
   }
 
   return (
-    <div
-      ref={containerRef}
-      id="industrial-services"
-      className="relative w-full h-[650vh] bg-white font-['Inter',sans-serif] select-none"
-    >
+    <div id="industrial-services" className="relative w-full">
+      {/* ========================================================================= */}
+      {/* 01. RESPONSIVE MOBILE & TABLET SERVICES VIEW (lg:hidden)                 */}
+      {/* High-Performance, Fully Interactive, Instant-Tap Navigation Cards        */}
+      {/* ========================================================================= */}
+      <section className="lg:hidden py-14 sm:py-20 bg-[#11181E] text-white px-4 sm:px-6 border-b border-slate-800 font-['Inter',sans-serif]">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="space-y-3">
+            <span className="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block font-mono">
+              /OUR FREIGHT SERVICES
+            </span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold font-['Manrope'] text-white tracking-tight uppercase leading-tight">
+              EVERYTHING YOUR FREIGHT NEEDS.<br />
+              <span className="text-slate-400">UNDER ONE GROUP.</span>
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-2xl">
+              From fast air cargo to bulk ocean containers, customs clearance to final doorstep delivery across all 64 districts in Bangladesh — complete supply chain coverage with direct door delivery.
+            </p>
+          </div>
+
+          {/* 6 Clickable Service Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {SERVICES.map((s) => {
+              const href = getServiceHref(s.id);
+              return (
+                <a
+                  key={s.id}
+                  href={href}
+                  className="p-5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-[#EA1D2C] active:scale-[0.99] transition-all flex flex-col justify-between space-y-4 cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-lg bg-white/10 text-white flex items-center justify-center group-hover:bg-[#EA1D2C] group-hover:text-white transition-colors">
+                      {renderServiceIcon(s.icon, 'w-6 h-6')}
+                    </div>
+                    <span className="text-xs font-bold text-[#EA1D2C] group-hover:translate-x-1 transition-transform flex items-center gap-1">
+                      <span>Details</span>
+                      <span>→</span>
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-extrabold text-white font-['Manrope'] tracking-tight">
+                      {s.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                      {s.description}
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-slate-800/80 text-[11px] font-semibold text-slate-300 flex items-center gap-1 group-hover:text-white">
+                    <span>View Service Rates &amp; Delivery Info</span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+
+          {/* 4 Pillars Summary */}
+          <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block font-mono">
+              OUR 4 CORE FREIGHT PILLARS
+            </span>
+            <div className="grid grid-cols-2 gap-3 text-xs font-semibold text-slate-300">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
+                <span>China Warehouse Hubs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
+                <span>In-House Customs Clearance</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
+                <span>Door-to-Door Delivery</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
+                <span>24/7 Dedicated Support</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick CTA Actions */}
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <a
+              href="/quote"
+              className="flex-1 h-11 px-5 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] active:bg-[#B7101C] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+            >
+              <span>Get a Shipping Quote</span>
+              <span>→</span>
+            </a>
+            <a
+              href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote."
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 h-11 px-5 rounded-lg border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-900/60 transition-colors cursor-pointer"
+            >
+              <span>Chat on WhatsApp</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 02. DESKTOP 650vh CINEMATIC SCROLL VIEW (hidden lg:block)                 */}
+      {/* ========================================================================= */}
+      <div
+        ref={containerRef}
+        className="hidden lg:block relative w-full h-[650vh] bg-white font-['Inter',sans-serif] select-none"
+      >
       {/* Sticky Cinematic Fullscreen Viewport (100% Clean Fullscreen) */}
       <div
         className={`sticky top-0 h-screen w-full overflow-hidden transition-colors duration-500 ${
@@ -287,58 +468,18 @@ export const IndustrialScrollShowcase: React.FC = () => {
                 >
                   {SERVICES.map((s) => {
                     return (
-                      <div key={s.id} className="w-[300px] sm:w-[380px] shrink-0 space-y-3.5">
+                      <a
+                        key={s.id}
+                        href={getServiceHref(s.id)}
+                        className="w-[300px] sm:w-[380px] shrink-0 space-y-3.5 block pointer-events-auto cursor-pointer group hover:opacity-95"
+                      >
                         {/* Minimalist White Vector Icon */}
-                        <div className="w-10 h-10 flex items-center justify-center text-white mb-2">
-                          {s.icon === 'plane' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z" />
-                            </svg>
-                          )}
-                          {s.icon === 'ship' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" />
-                              <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76" />
-                              <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6" />
-                              <line x1="12" y1="1" x2="12" y2="5" />
-                            </svg>
-                          )}
-                          {s.icon === 'scales' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                              <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                              <path d="M7 21h10" />
-                              <path d="M12 3v18" />
-                              <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-                            </svg>
-                          )}
-                          {s.icon === 'warehouse' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" />
-                              <path d="M6 18h12" />
-                              <path d="M6 14h12" />
-                            </svg>
-                          )}
-                          {s.icon === 'crane' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M2 22h20" />
-                              <path d="M6 22V2l10 5" />
-                              <path d="m16 7 4 2v5l-4-2" />
-                            </svg>
-                          )}
-                          {s.icon === 'truck' && (
-                            <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
-                              <path d="M15 18H9" />
-                              <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
-                              <circle cx="17" cy="18" r="2" />
-                              <circle cx="7" cy="18" r="2" />
-                            </svg>
-                          )}
+                        <div className="w-10 h-10 flex items-center justify-center text-white mb-2 group-hover:text-[#EA1D2C] transition-colors">
+                          {renderServiceIcon(s.icon)}
                         </div>
 
                         {/* Title in bold white uppercase */}
-                        <h3 className="text-xl sm:text-2xl font-black font-['Manrope'] text-white tracking-tight uppercase">
+                        <h3 className="text-xl sm:text-2xl font-black font-['Manrope'] text-white tracking-tight uppercase group-hover:text-[#EA1D2C] transition-colors">
                           {s.title}
                         </h3>
 
@@ -346,7 +487,12 @@ export const IndustrialScrollShowcase: React.FC = () => {
                         <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal whitespace-normal">
                           {s.description}
                         </p>
-                      </div>
+
+                        <div className="pt-2 text-xs font-bold text-[#EA1D2C] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                          <span>Explore Service Details</span>
+                          <span>→</span>
+                        </div>
+                      </a>
                     );
                   })}
                 </div>
@@ -843,5 +989,6 @@ export const IndustrialScrollShowcase: React.FC = () => {
 
       </div>
     </div>
+  </div>
   );
 };

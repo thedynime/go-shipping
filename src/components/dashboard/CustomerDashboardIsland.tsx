@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import LiveTrackingIsland from '../marketing/LiveTrackingIsland';
 import QuoteCalculatorIsland from '../marketing/QuoteCalculatorIsland';
 import ReferenceSelect from '../common/ReferenceSelect';
+import {
+  StatCardSkeleton,
+  TableTabSkeleton,
+  InvoicesTabSkeleton
+} from '../common/DashboardSkeleton';
 import type { ShipmentRecord } from '../../server/services/shipment.service';
 import type { QuoteRecord } from '../../server/services/quote.service';
 
@@ -506,8 +511,34 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
       </header>
 
       {/* Main Content Workspace with standard generous padding & independent scrolling */}
-      <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-
+      <main className="flex-1 overflow-y-auto p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        {loading ? (
+          <div className="space-y-6 animate-in fade-in duration-150">
+            {tab !== 'request-quote' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <StatCardSkeleton key={i} />
+                ))}
+              </div>
+            )}
+            {tab === 'documents' ? (
+              <InvoicesTabSkeleton />
+            ) : tab === 'request-quote' ? (
+              <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-6 shadow-xs animate-pulse">
+                <div className="h-6 w-48 bg-slate-200 rounded" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                </div>
+              </div>
+            ) : (
+              <TableTabSkeleton columns={6} rows={5} />
+            )}
+          </div>
+        ) : (
+          <>
       {/* ========================================================= */}
       {/* TAB 1: OVERVIEW DASHBOARD                                 */}
       {/* ========================================================= */}
@@ -570,7 +601,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-xs">
                   <tr>
                     <th className="py-3 px-4">Tracking code</th>
-                    <th className="py-3 px-4">Route</th>
+                    <th className="py-3 px-4">Product Name</th>
                     <th className="py-3 px-4">Mode</th>
                     <th className="py-3 px-4">Gross weight</th>
                     <th className="py-3 px-4">Current waypoint</th>
@@ -601,8 +632,12 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                         </button>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="font-semibold text-slate-800">{s.originCity}</span> →{' '}
-                        <span className="font-semibold text-slate-800">{s.destCity}</span>
+                        <div className="font-semibold text-slate-900 truncate max-w-[200px]" title={s.productName || (s as any).cargoDescription || 'Commercial Goods'}>
+                          {s.productName || (s as any).cargoDescription || 'Commercial Goods'}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          {s.originCity} → {s.destCity}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-xs">{s.mode === 'air' ? 'By Air' : s.mode === 'sea' ? 'By Ship' : s.mode === 'hand_carry' ? 'Hand Carry' : s.mode.toUpperCase()}</td>
                       <td className="py-3.5 px-4 tabular-nums font-medium">{s.totalWeightKg} KG</td>
@@ -712,7 +747,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
               <thead className="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200 text-[10px] tracking-wider">
                 <tr>
                   <th className="py-3 px-4">Tracking Code</th>
-                  <th className="py-3 px-4">Route</th>
+                  <th className="py-3 px-4">Product Name</th>
                   <th className="py-3 px-4">Mode &amp; Service</th>
                   <th className="py-3 px-4">Weight &amp; Volume</th>
                   <th className="py-3 px-4">Current Location</th>
@@ -762,11 +797,11 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <div className="font-semibold text-slate-800">
-                        {s.originCity}, {s.originCountry}
+                      <div className="font-semibold text-slate-900 truncate max-w-[220px]" title={s.productName || (s as any).cargoDescription || 'Commercial Goods'}>
+                        {s.productName || (s as any).cargoDescription || 'Commercial Goods'}
                       </div>
-                      <div className="text-[11px] text-slate-400">
-                        ↓ to {s.destCity}, {s.destCountry}
+                      <div className="text-[11px] text-slate-500 font-mono">
+                        {s.originCity} → {s.destCity}
                       </div>
                     </td>
                     <td className="py-4 px-4 uppercase font-mono">
@@ -1396,6 +1431,8 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
           </div>
         </div>
       )}
+          </>
+        )}
 
       {/* ========================================================= */}
       {/* ORDER INFO MODAL DIALOG                                   */}

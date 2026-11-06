@@ -83,6 +83,14 @@ In Hostinger Control Panel (hPanel) -> Advanced -> Cron Jobs:
   - `DELETE /api/admin/users/:id`: Permanently purges user account.
   - `POST /api/admin/impersonate/:id`: Authenticates Super Admin as the target user without credentials (masquerade session).
   - `POST /api/auth/exit-impersonation`: Destroys masquerade session and returns Super Admin to `/admin?tab=users`.
+- **POS Ledger & Sourcing Terminal Endpoints**:
+  - `GET /api/admin/pos-ledger`: Lists POS orders with search and filter parameters (`serviceType`, `paymentStatus`, `supplier`).
+  - `GET /api/admin/pos-ledger/stats`: Aggregates real-time KPIs (total orders, RMB purchase, BDT purchase, freight, revenue, collected, due, profit, weight).
+  - `POST /api/admin/pos-ledger`: Creates order with automatic server-side recalculations.
+  - `PUT /api/admin/pos-ledger/:id`: Updates order with synchronized auto-computations.
+  - `DELETE /api/admin/pos-ledger/:id`: Removes record from active ledger.
+  - `POST /api/admin/pos-ledger/import`: Parses and imports raw 30-column CSV data from Google Sheets.
+  - `GET /api/admin/pos-ledger/export`: Streams 1:1 compatible CSV export for Excel/Google Sheets.
 - **Resend Email & Transactional Telemetry Endpoints**:
   - `POST /api/contact`: Public contact form submission triggering ops lead notification to `ops@goshipping.com.bd`.
   - `GET /api/admin/email/status`: Returns Resend SDK domain status for `send.goshipping.com.bd` (verified), region, and DKIM/SPF DNS records.

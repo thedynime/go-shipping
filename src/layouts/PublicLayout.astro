@@ -176,24 +176,152 @@ const user = Astro.locals?.user;
     <TrackingBody config={trackingConfig} />
     <!-- Minimalist Industrial Top Navigation -->
     <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[4.25rem] flex items-center justify-between">
         
         <!-- Original GoShipping Logo -->
         <a href="/" class="flex items-center gap-2 group shrink-0" aria-label="GoShipping Home">
           <img
             src="/brand/logo-light.svg"
             alt="Go Shipping"
-            class="h-9 sm:h-10 w-auto object-contain"
+            class="h-8 sm:h-8.5 w-auto object-contain"
           />
         </a>
 
-        <!-- Center Menu Links (Aligned to 14px font standard with comfortable gap) -->
-        <nav class="hidden md:flex items-center space-x-5 lg:space-x-6 text-sm font-semibold text-slate-700 font-['Manrope',sans-serif]">
-          <a href="/services" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath.startsWith('/services') ? 'text-[#EA1D2C]' : ''}`}>Services</a>
+        <!-- Center Menu Links (Refined compact 13px typography) -->
+        <nav class="hidden md:flex items-center space-x-3.5 lg:space-x-5 text-[13px] font-semibold text-slate-600 font-['Manrope',sans-serif]">
+          
+          <!-- Services Dropdown for PC / Desktop -->
+          <div class="relative group py-2">
+            <a
+              href="/services"
+              class={`inline-flex items-center gap-1 hover:text-[#EA1D2C] transition-colors duration-150 py-1 ${currentPath.startsWith('/services') ? 'text-[#EA1D2C]' : ''}`}
+              aria-expanded="false"
+              aria-haspopup="true"
+            >
+              <span>Services</span>
+              <svg class="w-3.5 h-3.5 stroke-[2.5] text-slate-400 group-hover:text-[#EA1D2C] group-hover:rotate-180 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </a>
+
+            <!-- Dropdown Menu Bridge & Container -->
+            <div class="invisible opacity-0 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 transition-all duration-150 absolute left-0 top-full pt-1.5 w-72 z-50 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
+              <div class="bg-white rounded-xl border border-slate-200 shadow-xl p-2 font-['Inter',sans-serif] space-y-1">
+                <a
+                  href="/services"
+                  class="flex items-center justify-between p-2 rounded-lg hover:bg-red-50/70 group/item transition-colors"
+                >
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 rounded-md bg-red-100 text-[#EA1D2C] flex items-center justify-center text-xs font-bold shrink-0">
+                      ★
+                    </div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-900 group-hover/item:text-[#EA1D2C]">All Services</div>
+                      <div class="text-[10px] text-slate-400">Complete logistics suite</div>
+                    </div>
+                  </div>
+                  <span class="text-xs text-slate-400 group-hover/item:text-[#EA1D2C]">→</span>
+                </a>
+
+                <div class="h-px bg-slate-100 my-1"></div>
+
+                <a
+                  href="/services/air-shipment"
+                  class={`flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors ${currentPath === '/services/air-shipment' ? 'bg-red-50 text-[#EA1D2C]' : ''}`}
+                >
+                  <div class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/>
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold text-slate-800 flex items-center justify-between">
+                      <span>Air Shipment</span>
+                      <span class="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">3–7 Days</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 truncate">Guangzhou &amp; Shenzhen to Dhaka flight</div>
+                  </div>
+                </a>
+
+                <a
+                  href="/services/sea-shipment"
+                  class={`flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors ${currentPath === '/services/sea-shipment' ? 'bg-red-50 text-[#EA1D2C]' : ''}`}
+                >
+                  <div class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M2 20a6 6 0 0 0 10 0 6 6 0 0 0 10 0"/>
+                      <path d="m4 16 2-7 12 1 2 6"/>
+                      <path d="M12 4v6"/>
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold text-slate-800 flex items-center justify-between">
+                      <span>Sea Shipment</span>
+                      <span class="text-[9px] font-mono text-slate-500">FCL / LCL</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 truncate">Cost-effective bulk ocean freight</div>
+                  </div>
+                </a>
+
+                <a
+                  href="/services/door-to-door"
+                  class={`flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors ${currentPath === '/services/door-to-door' ? 'bg-red-50 text-[#EA1D2C]' : ''}`}
+                >
+                  <div class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="1" y="3" width="15" height="13"/>
+                      <polygon points="16 8 20 8 23 11 23 16 16 16 8"/>
+                      <circle cx="5.5" cy="18.5" r="2.5"/>
+                      <circle cx="18.5" cy="18.5" r="2.5"/>
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold text-slate-800">Door-to-Door Delivery</div>
+                    <div class="text-[10px] text-slate-400 truncate">All-inclusive doorstep fulfillment</div>
+                  </div>
+                </a>
+
+                <a
+                  href="/services/customs-clearance"
+                  class={`flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors ${currentPath === '/services/customs-clearance' ? 'bg-red-50 text-[#EA1D2C]' : ''}`}
+                >
+                  <div class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold text-slate-800">Customs Clearance Support</div>
+                    <div class="text-[10px] text-slate-400 truncate">Hassle-free airport &amp; seaport clearance</div>
+                  </div>
+                </a>
+
+                <a
+                  href="/services/china-warehouse"
+                  class={`flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 transition-colors ${currentPath === '/services/china-warehouse' ? 'bg-red-50 text-[#EA1D2C]' : ''}`}
+                >
+                  <div class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                      <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-semibold text-slate-800">China Warehouse Support</div>
+                    <div class="text-[10px] text-slate-400 truncate">Guangzhou, Yiwu &amp; Shenzhen hubs</div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+
           <a href="/how-it-works" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath === '/how-it-works' ? 'text-[#EA1D2C]' : ''}`}>How It Works</a>
+          <a href="/sourcing" class={`hover:text-[#EA1D2C] transition-colors duration-150 flex items-center gap-1.5 ${currentPath === '/sourcing' ? 'text-[#EA1D2C]' : ''}`}>
+            <span>সোর্সিং</span>
+            <span class="px-1.5 py-0.2 text-[9px] font-bold uppercase rounded bg-red-100 text-[#EA1D2C]">New</span>
+          </a>
           <a href="/quote" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath === '/quote' ? 'text-[#EA1D2C]' : ''}`}>Ship for Me</a>
           <a href="/about" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath === '/about' ? 'text-[#EA1D2C]' : ''}`}>About Us</a>
-          <a href="/faq" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath === '/faq' ? 'text-[#EA1D2C]' : ''}`}>FAQ</a>
           <a href="/contact" class={`hover:text-[#EA1D2C] transition-colors duration-150 ${currentPath === '/contact' ? 'text-[#EA1D2C]' : ''}`}>Contact</a>
         </nav>
 
@@ -230,27 +358,26 @@ const user = Astro.locals?.user;
           <!-- Dynamic Auth Controls (Single Sign In button if guest; Split Dashboard Button if authenticated) -->
           <div id="header-auth-container" class="inline-flex items-center">
             {user ? (
-              <div class="relative inline-flex items-center" id="header-user-split-container">
-                <div class="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 shadow-2xs">
+              <div class="relative inline-flex items-center group" id="header-user-split-container">
+                <div class="inline-flex items-center rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white shadow-xs transition-colors">
                   <a
                     id="header-auth-btn"
                     href={user.role === 'customer' ? '/dashboard' : '/admin'}
-                    class="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-800 hover:text-[#EA1D2C] hover:bg-slate-100 rounded-l-md transition-none"
+                    class="h-9 inline-flex items-center px-3.5 text-xs font-bold text-white hover:bg-black/10 rounded-l-md transition-none"
                     title="Open Dashboard"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>Dashboard</span>
                   </a>
-                  <div class="w-[1px] h-4 bg-slate-200"></div>
+                  <div class="w-[1px] h-4 bg-white/30"></div>
                   <button
                     type="button"
                     id="header-user-split-toggle"
                     aria-expanded="false"
                     aria-haspopup="true"
-                    class="h-9 px-2 inline-flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-r-md transition-none cursor-pointer"
+                    class="h-9 px-2 inline-flex items-center justify-center text-white/90 hover:text-white hover:bg-black/10 rounded-r-md transition-none cursor-pointer"
                     title="Dashboard Quick Links"
                   >
-                    <svg class="w-3.5 h-3.5 stroke-[2] transition-transform duration-150" id="header-split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 stroke-[2.5] transition-transform duration-150" id="header-split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>
@@ -365,29 +492,97 @@ const user = Astro.locals?.user;
       </div>
 
       <!-- Mobile Navigation Drawer -->
-      <div id="mobile-nav-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 space-y-3 font-['Manrope']">
-        <a href="/services" class="block py-2 text-sm font-semibold text-slate-800">All Services</a>
-        <a href="/services/air-shipment" class="block py-1.5 pl-3 text-xs text-slate-600">↳ Air Shipment (3-7 Days)</a>
-        <a href="/services/sea-shipment" class="block py-1.5 pl-3 text-xs text-slate-600">↳ Sea Shipment (FCL/LCL)</a>
-        <a href="/services/door-to-door" class="block py-1.5 pl-3 text-xs text-slate-600">↳ Door-to-Door Delivery</a>
-        <a href="/services/customs-clearance" class="block py-1.5 pl-3 text-xs text-slate-600">↳ Customs Clearance Support</a>
-        <a href="/services/china-warehouse" class="block py-1.5 pl-3 text-xs text-slate-600">↳ China Warehouse Support</a>
-        <a href="/how-it-works" class="block py-2 text-sm font-semibold text-slate-800">How It Works</a>
-        <a href="/quote" class="block py-2 text-sm font-semibold text-[#EA1D2C]">Ship for Me</a>
-        <a href="/about" class="block py-2 text-sm font-semibold text-slate-800">About Us</a>
-        <a href="/faq" class="block py-2 text-sm font-semibold text-slate-800">FAQ</a>
-        <a href="/contact" class="block py-2 text-sm font-semibold text-slate-800">Contact</a>
+      <div id="mobile-nav-menu" class="hidden md:hidden border-t border-slate-100 bg-white px-4 pt-3 pb-6 space-y-2 font-['Manrope']">
+        <!-- Services Section Accordion/Group -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200/80 p-2.5 space-y-1">
+          <div class="flex items-center justify-between px-2 py-1">
+            <span class="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">Services</span>
+            <a href="/services" class="text-[11px] font-bold text-[#EA1D2C] hover:underline">View All →</a>
+          </div>
+          <div class="space-y-0.5 pt-1">
+            <a href="/services/air-shipment" class={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold ${currentPath === '/services/air-shipment' ? 'bg-red-50 text-[#EA1D2C] font-bold' : 'text-slate-700 hover:bg-white'}`}>
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
+                Air Shipment
+              </span>
+              <span class="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 font-bold">3–7 Days</span>
+            </a>
+            <a href="/services/sea-shipment" class={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold ${currentPath === '/services/sea-shipment' ? 'bg-red-50 text-[#EA1D2C] font-bold' : 'text-slate-700 hover:bg-white'}`}>
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                Sea Shipment (FCL/LCL)
+              </span>
+              <span class="text-[10px] font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">35–45 Days</span>
+            </a>
+            <a href="/services/door-to-door" class={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold ${currentPath === '/services/door-to-door' ? 'bg-red-50 text-[#EA1D2C] font-bold' : 'text-slate-700 hover:bg-white'}`}>
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                Door-to-Door Delivery
+              </span>
+              <span class="text-[10px] text-slate-500">64 Districts</span>
+            </a>
+            <a href="/services/customs-clearance" class={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold ${currentPath === '/services/customs-clearance' ? 'bg-red-50 text-[#EA1D2C] font-bold' : 'text-slate-700 hover:bg-white'}`}>
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                Customs Clearance Support
+              </span>
+              <span class="text-[10px] text-slate-500">DDP / Tax-paid</span>
+            </a>
+            <a href="/services/china-warehouse" class={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold ${currentPath === '/services/china-warehouse' ? 'bg-red-50 text-[#EA1D2C] font-bold' : 'text-slate-700 hover:bg-white'}`}>
+              <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                China Warehouse Support
+              </span>
+              <span class="text-[10px] text-slate-500">Guangzhou / Yiwu</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Primary Navigation Links -->
+        <div class="space-y-1">
+          <a href="/sourcing" class={`flex items-center justify-between min-h-[44px] px-3 rounded-lg text-sm font-bold ${currentPath === '/sourcing' ? 'bg-red-50 text-[#EA1D2C]' : 'text-[#EA1D2C] hover:bg-red-50/50'}`}>
+            <span>চীন পণ্য সোর্সিং (Sourcing)</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-red-100 text-[#EA1D2C]">New</span>
+          </a>
+          <a href="/how-it-works" class={`flex items-center min-h-[44px] px-3 rounded-lg text-sm font-semibold ${currentPath === '/how-it-works' ? 'bg-slate-100 text-[#EA1D2C] font-bold' : 'text-slate-800 hover:bg-slate-50'}`}>
+            How It Works
+          </a>
+          <a href="/quote" class={`flex items-center justify-between min-h-[44px] px-3 rounded-lg text-sm font-bold ${currentPath === '/quote' ? 'bg-red-50 text-[#EA1D2C]' : 'text-slate-900 hover:bg-slate-50'}`}>
+            <span>Ship for Me</span>
+            <span class="text-xs text-[#EA1D2C] font-mono">Rates &amp; Form →</span>
+          </a>
+          <a href="/about" class={`flex items-center min-h-[44px] px-3 rounded-lg text-sm font-semibold ${currentPath === '/about' ? 'bg-slate-100 text-[#EA1D2C] font-bold' : 'text-slate-800 hover:bg-slate-50'}`}>
+            About Us
+          </a>
+          <a href="/contact" class={`flex items-center min-h-[44px] px-3 rounded-lg text-sm font-semibold ${currentPath === '/contact' ? 'bg-slate-100 text-[#EA1D2C] font-bold' : 'text-slate-800 hover:bg-slate-50'}`}>
+            Contact
+          </a>
+        </div>
+
         <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">
           <div class="grid grid-cols-2 gap-2">
             <a
               href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote."
               target="_blank"
               rel="noreferrer"
-              class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-md transition-colors duration-150"
+              class="min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors duration-150"
             >
               <svg class="w-4 h-4 fill-emerald-600" viewBox="0 0 24 24">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.969.54 1.861.855 2.796.856 3.183 0 5.768-2.587 5.769-5.766.001-3.182-2.585-5.769-5.769-5.769zm3.364 8.163c-.144.405-.837.774-1.17.822-.312.043-.683.076-2.18-.544-1.916-.79-3.149-2.73-3.245-2.858-.095-.127-.778-1.034-.778-1.972 0-.938.491-1.399.666-1.59.175-.19.382-.239.508-.239.127 0 .254.001.365.006.119.006.277-.045.433.329.162.388.552 1.343.6 1.44.048.098.08.212.016.339-.064.127-.095.207-.19.317-.095.11-.2.247-.286.332-.095.095-.195.198-.084.388.111.19.494.815 1.059 1.319.728.648 1.342.85 1.533.945.19.095.302.079.413-.048.111-.127.476-.554.603-.744.127-.19.254-.159.429-.095.175.063 1.111.524 1.302.619.19.095.317.143.365.222.048.079.048.459-.095.864z"/>
               </svg>
+              <span>WhatsApp</span>
+            </a>
+            <a
+              href="/tracking"
+              class="min-h-[44px] flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors duration-150"
+            >
+              <svg class="w-3.5 h-3.5 text-[#EA1D2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span>Track</span>
+            </a>
+          </div>
               <span>WhatsApp</span>
             </a>
             <a
@@ -406,27 +601,27 @@ const user = Astro.locals?.user;
               <div class="space-y-2">
                 <a
                   href={user.role === 'customer' ? '/dashboard' : '/admin'}
-                  class="block text-center py-2.5 text-xs font-bold text-white bg-[#EA1D2C] hover:bg-[#D41523] rounded-md shadow-xs"
+                  class="min-h-[44px] flex items-center justify-center text-center py-2.5 px-4 text-xs font-bold text-white bg-[#EA1D2C] hover:bg-[#D41523] rounded-lg shadow-xs"
                 >
                   Open Dashboard
                 </a>
                 <div class="grid grid-cols-2 gap-1.5 text-xs font-medium pt-1">
-                  <a href={user.role === 'customer' ? '/dashboard?tab=overview' : '/admin?tab=overview'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">Overview</a>
-                  <a href={user.role === 'customer' ? '/dashboard?tab=shipments' : '/admin?tab=shipments'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">My Shipments</a>
-                  <a href={user.role === 'customer' ? '/dashboard?tab=tracking' : '/admin?tab=tracking'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">Live Tracking</a>
-                  <a href={user.role === 'customer' ? '/dashboard?tab=quotes' : '/admin?tab=quotes'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">My Quotes</a>
-                  <a href={user.role === 'customer' ? '/dashboard?tab=request-quote' : '/quote'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">Get Quote</a>
-                  <a href={user.role === 'customer' ? '/dashboard?tab=documents' : '/admin?tab=invoices'} class="py-2 px-2.5 rounded bg-slate-50 border border-slate-200 text-slate-700 text-center">Invoices</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=overview' : '/admin?tab=overview'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">Overview</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=shipments' : '/admin?tab=shipments'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">My Shipments</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=tracking' : '/admin?tab=tracking'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">Live Tracking</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=quotes' : '/admin?tab=quotes'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">My Quotes</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=request-quote' : '/quote'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">Get Quote</a>
+                  <a href={user.role === 'customer' ? '/dashboard?tab=documents' : '/admin?tab=invoices'} class="min-h-[40px] flex items-center justify-center py-2 px-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-center">Invoices</a>
                 </div>
-                <div class="pt-1.5 flex items-center justify-between text-xs px-1 border-t border-slate-100">
-                  <a href={user.role === 'customer' ? '/dashboard?tab=settings' : '/admin?tab=users'} class="text-slate-600 font-medium">Profile &amp; Settings</a>
-                  <a href="/logout" class="text-red-600 font-bold hover:underline">Sign Out</a>
+                <div class="pt-2 flex items-center justify-between text-xs px-1 border-t border-slate-100">
+                  <a href={user.role === 'customer' ? '/dashboard?tab=settings' : '/admin?tab=users'} class="text-slate-600 font-medium py-1">Profile &amp; Settings</a>
+                  <a href="/logout" class="text-red-600 font-bold hover:underline py-1">Sign Out</a>
                 </div>
               </div>
             ) : (
               <a
                 href="/login"
-                class="block text-center py-2.5 text-xs font-bold text-white bg-[#EA1D2C] hover:bg-[#D41523] rounded-md shadow-xs"
+                class="min-h-[44px] flex items-center justify-center text-center py-2.5 px-4 text-xs font-bold text-white bg-[#EA1D2C] hover:bg-[#D41523] rounded-lg shadow-xs"
               >
                 Sign In
               </a>
@@ -482,22 +677,23 @@ const user = Astro.locals?.user;
           <div class="md:col-span-2 space-y-3">
             <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Company</h4>
             <ul class="text-xs space-y-2 text-slate-400">
-              <li><a href="/about" class="hover:text-white transition-colors duration-150">About Go Shipping</a></li>
-              <li><a href="/how-it-works" class="hover:text-white transition-colors duration-150">How It Works</a></li>
+              <li><a href="/sourcing" class="text-white font-semibold hover:text-[#EA1D2C] transition-colors duration-150">China Sourcing Service</a></li>
               <li><a href="/quote" class="hover:text-white transition-colors duration-150">Shipping Rates & Quote</a></li>
               <li><a href="/tracking" class="hover:text-white transition-colors duration-150">Track Consignment</a></li>
-              <li><a href="/faq" class="hover:text-white transition-colors duration-150">FAQ & Guidelines</a></li>
+              <li><a href="/how-it-works" class="hover:text-white transition-colors duration-150">How It Works</a></li>
+              <li><a href="/about" class="hover:text-white transition-colors duration-150">About Go Shipping</a></li>
               <li><a href="/contact" class="hover:text-white transition-colors duration-150">Contact Us</a></li>
             </ul>
           </div>
 
           <!-- Col 4: Verified Contact Channels from goshipping.com.bd -->
-          <div class="md:col-span-3 space-y-3 text-xs text-slate-400">
+          <div class="md:col-span-3 space-y-2.5 text-xs text-slate-400">
             <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Direct Contact</h4>
-            <p><strong class="text-slate-200">Phone:</strong> <a href="tel:+8801797252627" class="hover:text-white transition-colors">+880 1797-252627</a></p>
-            <p><strong class="text-slate-200">WhatsApp:</strong> <a href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote." target="_blank" rel="noreferrer" class="text-emerald-400 hover:text-emerald-300 transition-colors">+880 1797-252627 (Instant Chat)</a></p>
+            <p><strong class="text-slate-200">BD OFFICE:</strong> <a href="tel:01797252627" class="hover:text-white transition-colors font-mono font-medium">01797252627</a></p>
+            <p><strong class="text-slate-200">China OFFICE:</strong> <a href="tel:+8615014232749" class="hover:text-white transition-colors font-mono font-medium">+86 150 1423 2749</a></p>
+            <p><strong class="text-slate-200">WhatsApp:</strong> <a href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote." target="_blank" rel="noreferrer" class="text-emerald-400 hover:text-emerald-300 transition-colors font-mono font-medium">01797252627 (Instant Chat)</a></p>
             <p><strong class="text-slate-200">Email:</strong> <a href="mailto:hello@goshipping.com.bd" class="hover:text-white transition-colors">hello@goshipping.com.bd</a></p>
-            <p><strong class="text-slate-200">Location:</strong> Dhaka, Bangladesh</p>
+            <p class="leading-relaxed"><strong class="text-slate-200">Location:</strong> 43/31, Near of SabujKanon Jame Masjid, Sabujbagh, Dhaka-1214, Bangladesh</p>
           </div>
         </div>
 
@@ -517,35 +713,80 @@ const user = Astro.locals?.user;
       const toggle = document.getElementById('mobile-nav-toggle');
       const menu = document.getElementById('mobile-nav-menu');
       if (toggle && menu) {
-        toggle.addEventListener('click', () => {
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
           menu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu on clicking any navigation link
+        menu.querySelectorAll('a, button').forEach((link) => {
+          link.addEventListener('click', () => {
+            menu.classList.add('hidden');
+          });
+        });
+
+        // Close on clicking outside
+        document.addEventListener('click', (e) => {
+          if (!menu.contains(e.target as Node) && !toggle.contains(e.target as Node)) {
+            menu.classList.add('hidden');
+          }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            menu.classList.add('hidden');
+          }
         });
       }
 
       function setupSplitButtonDropdown() {
+        const splitContainer = document.getElementById('header-user-split-container');
         const toggleBtn = document.getElementById('header-user-split-toggle');
         const splitMenu = document.getElementById('header-user-split-menu');
         const chevron = document.getElementById('header-split-chevron');
 
-        if (toggleBtn && splitMenu) {
-          toggleBtn.onclick = (e) => {
-            e.stopPropagation();
-            const isHidden = splitMenu.classList.contains('hidden');
-            if (isHidden) {
-              splitMenu.classList.remove('hidden');
-              toggleBtn.setAttribute('aria-expanded', 'true');
-              if (chevron) chevron.classList.add('rotate-180');
-            } else {
-              splitMenu.classList.add('hidden');
-              toggleBtn.setAttribute('aria-expanded', 'false');
-              if (chevron) chevron.classList.remove('rotate-180');
-            }
+        if (splitContainer && splitMenu) {
+          let timeoutId: any = null;
+
+          const showMenu = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            splitMenu.classList.remove('hidden');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
           };
 
-          document.addEventListener('click', (e) => {
-            if (!splitMenu.contains(e.target as Node) && !toggleBtn.contains(e.target as Node)) {
+          const hideMenu = () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
               splitMenu.classList.add('hidden');
-              toggleBtn.setAttribute('aria-expanded', 'false');
+              if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+              if (chevron) chevron.classList.remove('rotate-180');
+            }, 180);
+          };
+
+          // Automatically show dropdown on hover
+          splitContainer.addEventListener('mouseenter', showMenu);
+          splitContainer.addEventListener('mouseleave', hideMenu);
+
+          if (toggleBtn) {
+            toggleBtn.onclick = (e) => {
+              e.stopPropagation();
+              const isHidden = splitMenu.classList.contains('hidden');
+              if (isHidden) {
+                showMenu();
+              } else {
+                splitMenu.classList.add('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                if (chevron) chevron.classList.remove('rotate-180');
+              }
+            };
+          }
+
+          document.addEventListener('click', (e) => {
+            if (!splitMenu.contains(e.target as Node) && !splitContainer.contains(e.target as Node)) {
+              splitMenu.classList.add('hidden');
+              if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
               if (chevron) chevron.classList.remove('rotate-180');
             }
           });
@@ -553,7 +794,7 @@ const user = Astro.locals?.user;
           document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
               splitMenu.classList.add('hidden');
-              toggleBtn.setAttribute('aria-expanded', 'false');
+              if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
               if (chevron) chevron.classList.remove('rotate-180');
             }
           });
@@ -577,27 +818,26 @@ const user = Astro.locals?.user;
             const fullName = data.user.fullName || 'User Portal';
 
             const desktopHtml = `
-              <div class="relative inline-flex items-center" id="header-user-split-container">
-                <div class="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 shadow-2xs">
+              <div class="relative inline-flex items-center group" id="header-user-split-container">
+                <div class="inline-flex items-center rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white shadow-xs transition-colors">
                   <a
                     id="header-auth-btn"
                     href="${dashboardUrl}"
-                    class="h-9 inline-flex items-center gap-1.5 px-3.5 text-xs font-bold text-slate-800 hover:text-[#EA1D2C] hover:bg-slate-100 rounded-l-md transition-none"
+                    class="h-9 inline-flex items-center px-3.5 text-xs font-bold text-white hover:bg-black/10 rounded-l-md transition-none"
                     title="Open Dashboard"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>Dashboard</span>
                   </a>
-                  <div class="w-[1px] h-4 bg-slate-200"></div>
+                  <div class="w-[1px] h-4 bg-white/30"></div>
                   <button
                     type="button"
                     id="header-user-split-toggle"
                     aria-expanded="false"
                     aria-haspopup="true"
-                    class="h-9 px-2 inline-flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-r-md transition-none cursor-pointer"
+                    class="h-9 px-2 inline-flex items-center justify-center text-white/90 hover:text-white hover:bg-black/10 rounded-r-md transition-none cursor-pointer"
                     title="Dashboard Quick Links"
                   >
-                    <svg class="w-3.5 h-3.5 stroke-[2] transition-transform duration-150" id="header-split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 stroke-[2.5] transition-transform duration-150" id="header-split-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>

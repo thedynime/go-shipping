@@ -15,6 +15,7 @@ export interface QuoteRevision {
   validityDate: string;
   transitTimeDays: string;
   notes?: string;
+  staffName?: string;
   createdAt: string;
 }
 
@@ -266,37 +267,121 @@ export class QuoteService {
     return quote;
   }
 
-  static async convertQuoteToShipment(quoteId: string): Promise<{ quote: QuoteRecord; shipmentId: string } | null> {
+  static async convertQuoteToShipment(
+    quoteId: string,
+    overrides?: {
+      negotiatedPrice?: number;
+      currency?: string;
+      pricingNotes?: string;
+      productName?: string;
+      cargoDescription?: string;
+      originCountry?: string;
+      originCity?: string;
+      destCountry?: string;
+      destCity?: string;
+      mode?: 'air' | 'sea' | 'road' | 'hand_carry';
+      serviceLevel?: 'standard' | 'express' | 'priority';
+      totalWeightKg?: number;
+      totalCbm?: number;
+      totalPieces?: number;
+      packagingType?: string;
+      recipientName?: string;
+      recipientPhone?: string;
+      recipientAddress?: string;
+      carrierName?: string;
+      voyageOrFlightNumber?: string;
+      items?: Array<{
+        description: string;
+        itemCode?: string;
+        packagingType?: string;
+        quantity?: number;
+        weightKg?: number;
+        cbm?: number;
+        categoryTag?: 'General' | 'Commercial' | 'Liquids' | 'Dangerous' | 'Perishable' | 'Electronics';
+        declaredValue?: number;
+      }>;
+    }
+  ): Promise<{ quote: QuoteRecord; shipmentId: string; shipment: any } | null> {
     const quote = initialQuotes.find((q) => q.id === quoteId);
     if (!quote) return null;
 
+    // If a negotiated price or custom budget was agreed upon, record a new revision
+    if (overrides?.negotiatedPrice !== undefined && overrides.negotiatedPrice > 0) {
+      const agreedAmount = Number(overrides.negotiatedPrice);
+      const curr = overrides.currency || 'BDT';
+      const revObj: QuoteRevision = {
+        id: `rev-nego-${Date.now().toString(36)}`,
+        quoteId: quote.id,
+        revisionNumber: quote.revisions.length + 1,
+        baseFreightCharge: agreedAmount,
+        fuelSurcharge: 0,
+        customsClearanceFee: 0,
+        handlingFee: 0,
+        insuranceFee: 0,
+        otherFees: 0,
+        totalAmount: agreedAmount,
+        currency: curr,
+        validityDate: new Date(Date.now() + 30 * 86400000).toISOString(),
+        transitTimeDays: 'Standard Logistics Transit',
+        notes: overrides.pricingNotes || 'Final negotiated budget agreed with client prior to booking conversion.',
+        createdAt: new Date().toISOString()
+      };
+      quote.revisions.unshift(revObj);
+    }
+
+    const mode = (overrides?.mode || quote.mode || 'air') as 'air' | 'sea' | 'road' | 'hand_carry';
+    const originCountry = overrides?.originCountry || quote.originCountry;
+    const originCity = overrides?.originCity || quote.originCity;
+    const destCountry = overrides?.destCountry || quote.destCountry;
+    const destCity = overrides?.destCity || quote.destCity;
+    const totalWeightKg = Number(overrides?.totalWeightKg) || quote.totalWeightKg;
+    const totalCbm = Number(overrides?.totalCbm) || quote.totalCbm;
+    const totalPieces = Number(overrides?.totalPieces) || quote.quantity;
+    const cargoDescription = overrides?.cargoDescription || quote.cargoDescription;
+    const productName = overrides?.productName || quote.productName || cargoDescription;
+
+    const items =
+      overrides?.items && overrides.items.length > 0
+        ? overrides.items
+        : [
+            {
+              description: cargoDescription,
+              quantity: totalPieces,
+              packagingType: overrides?.packagingType || quote.packagingType || 'carton',
+              weightKg: totalWeightKg,
+              cbm: totalCbm,
+              categoryTag: 'Commercial' as const,
+              declaredValue: quote.declaredValue
+            }
+          ];
+
     const newShipment = await ShipmentService.createShipment({
-      customerId: quote.customerId || 'guest-customer',
+      customerId: quote.customerId || 'usr-customer-01',
       customerName: quote.guestName,
-      originCountry: quote.originCountry,
-      originCity: quote.originCity,
-      destCountry: quote.destCountry,
-      destCity: quote.destCity,
-      mode: quote.mode,
-      serviceLevel: 'standard',
-      totalWeightKg: quote.totalWeightKg,
-      totalCbm: quote.totalCbm,
-      totalPieces: quote.quantity,
-      items: [
-        {
-          description: quote.cargoDescription,
-          quantity: quote.quantity,
-          packagingType: quote.packagingType,
-          weightKg: quote.totalWeightKg,
-          cbm: quote.totalCbm
-        }
-      ]
+      customerEmail: quote.guestEmail,
+      customerPhone: quote.guestPhone,
+      productName,
+      recipientName: overrides?.recipientName || `${quote.guestName} Receiving Facility`,
+      recipientPhone: overrides?.recipientPhone || quote.guestPhone,
+      recipientAddress: overrides?.recipientAddress || `${destCity}, ${destCountry}`,
+      originCountry,
+      originCity,
+      destCountry,
+      destCity,
+      mode,
+      serviceLevel: overrides?.serviceLevel || 'express',
+      totalWeightKg,
+      totalCbm,
+      totalPieces,
+      carrierName: overrides?.carrierName || (mode === 'air' ? 'GoShipping Air Priority' : mode === 'sea' ? 'GoShipping Ocean Line' : 'GoShipping Surface'),
+      voyageOrFlightNumber: overrides?.voyageOrFlightNumber || (mode === 'air' ? 'Flight GOSH-CARGO' : 'Vessel GOSH-VOYAGE'),
+      items
     });
 
     quote.status = 'converted_to_shipment';
     quote.convertedShipmentId = newShipment.id;
     quote.updatedAt = new Date().toISOString();
 
-    return { quote, shipmentId: newShipment.id };
+    return { quote, shipmentId: newShipment.id, shipment: newShipment };
   }
 }

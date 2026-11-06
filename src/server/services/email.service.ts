@@ -685,6 +685,58 @@ export class EmailService {
   }
 
   /**
+   * 5b. Send Password Reset Verification OTP Email
+   */
+  static async sendPasswordResetOtpEmail(params: {
+    email: string;
+    fullName: string;
+    code: string;
+    siteUrl?: string;
+  }): Promise<{ success: boolean; id?: string; error?: string; fallback?: boolean }> {
+    const subject = `GoShipping Password Reset Code: ${params.code}`;
+    const preheader = `Use verification code ${params.code} to reset your GoShipping portal password.`;
+
+    const htmlContent = `
+      <div style="border-left: 4px solid #EA1D2C; padding-left: 16px; margin-bottom: 24px;">
+        <span style="display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #EA1D2C; letter-spacing: 0.5px;">
+          Security Verification
+        </span>
+        <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800; color: #11181E; line-height: 1.2;">
+          Reset Your Password
+        </h2>
+      </div>
+
+      <p style="margin: 0 0 16px 0; font-size: 14px; color: #4B5563; line-height: 1.6;">
+        Hello <strong>${params.fullName}</strong>,<br>
+        We received a request to reset the password for your GoShipping account (<code>${params.email}</code>).
+      </p>
+
+      <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0;">
+        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748B; letter-spacing: 0.5px; margin-bottom: 8px;">
+          Your 6-Digit Verification Code
+        </div>
+        <div style="font-family: monospace, Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #EA1D2C; margin: 12px 0;">
+          ${params.code}
+        </div>
+        <div style="font-size: 12px; color: #94A3B8;">
+          This code expires in 15 minutes. If you did not request this, please ignore this email.
+        </div>
+      </div>
+
+      <p style="margin: 20px 0 0 0; font-size: 13px; color: #64748B; line-height: 1.5;">
+        Need instant help? Contact GoShipping Support on WhatsApp at 
+        <a href="https://wa.me/8801797252627" style="color: #25D366; font-weight: 700; text-decoration: none;">+880 1797-252627</a>.
+      </p>
+    `;
+
+    return this.sendMail({
+      to: params.email,
+      subject,
+      html: this.renderBaseTemplate(subject, preheader, htmlContent)
+    });
+  }
+
+  /**
    * 6. Send Contact Us Lead Notification
    */
   static async sendContactInquiryNotification(inquiry: {

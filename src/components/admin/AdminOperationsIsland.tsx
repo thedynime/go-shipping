@@ -1,12 +1,22 @@
 import SearchableSelect, { type SearchableSelectOption } from "./SearchableSelect";
 import { ReferenceSelect } from "./ReferenceSelect";
-import React, { useState, useEffect, useMemo } from 'react';
+import BannersManager from './BannersManager';
+import TestimonialsManager from './TestimonialsManager';
+import PosLedgerTerminal from './PosLedgerTerminal';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import type { ShipmentRecord, ShipmentItem } from '../../server/services/shipment.service';
 import type { QuoteRecord } from '../../server/services/quote.service';
 import type { WarehouseRecord } from '../../server/services/warehouse.service';
 import { TRACKING_STATUSES, normalizeStatusCode, calculatePhysicalProgress, type TrackingStatusCode } from '../../server/services/tracking-status';
 import { DESTINATION_ADDRESS_CONFIGS, PHONE_DIAL_CODES } from '../marketing/shippingLocations';
 import { downloadInvoicePDF, SETTLEMENT_BANKS, type SettlementBankInfo } from '../../lib/invoicePdf';
+import {
+  StatCardSkeleton,
+  OverviewSkeleton,
+  TableTabSkeleton,
+  WarehousesSkeleton,
+  InvoicesTabSkeleton
+} from '../common/DashboardSkeleton';
 
 interface CustomerItem {
   id: string;
@@ -81,6 +91,376 @@ const DESTINATION_OPTIONS: SearchableSelectOption[] = [
   { value: 'Savar', label: 'Dhaka North (DEPZ Savar Hub)', badge: 'BD' }
 ];
 
+const ORDER_STATUS_CONFIG: Record<
+  TrackingStatusCode,
+  {
+    label: string;
+    shortLabel: string;
+    stepNumber: number;
+    badgeClass: string;
+    dotClass: string;
+    description: string;
+  }
+> = {
+  purchased: {
+    label: 'Purchased / Order Created',
+    shortLabel: 'Purchased',
+    stepNumber: 1,
+    badgeClass: 'bg-slate-50 text-slate-700 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300',
+    dotClass: 'bg-slate-400',
+    description: 'Manifest created, awaiting hub delivery'
+  },
+  cn_warehouse_received: {
+    label: 'CN Warehouse Received',
+    shortLabel: 'CN Received',
+    stepNumber: 2,
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200/90 hover:bg-blue-100/70 hover:border-blue-300',
+    dotClass: 'bg-blue-500',
+    description: 'Measured & sorted at Guangzhou/Yiwu hub'
+  },
+  dispatched_from_china: {
+    label: 'Dispatched from China',
+    shortLabel: 'Dispatched (CN)',
+    stepNumber: 3,
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200/90 hover:bg-indigo-100/70 hover:border-indigo-300',
+    dotClass: 'bg-indigo-500',
+    description: 'Departed China via international carrier'
+  },
+  arrived_dhaka_airport: {
+    label: 'Arrived Dhaka Airport',
+    shortLabel: 'Arrived (DAC)',
+    stepNumber: 4,
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200/90 hover:bg-purple-100/70 hover:border-purple-300',
+    dotClass: 'bg-purple-500',
+    description: 'Touched down at Dhaka HSIA Cargo Terminal'
+  },
+  awaiting_customs: {
+    label: 'Awaiting Customs Clearance',
+    shortLabel: 'Customs Clearance',
+    stepNumber: 5,
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/90 hover:bg-amber-100/70 hover:border-amber-300',
+    dotClass: 'bg-amber-500 animate-pulse',
+    description: 'Under customs appraisal & duty assessment'
+  },
+  bd_warehouse_received: {
+    label: 'BD Warehouse Received',
+    shortLabel: 'BD Received',
+    stepNumber: 6,
+    badgeClass: 'bg-sky-50 text-sky-700 border-sky-200/90 hover:bg-sky-100/70 hover:border-sky-300',
+    dotClass: 'bg-sky-500',
+    description: 'Released from customs and sorted in Dhaka hub'
+  },
+  payment_received: {
+    label: 'Payment Received',
+    shortLabel: 'Payment Cleared',
+    stepNumber: 7,
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200/90 hover:bg-emerald-100/70 hover:border-emerald-300',
+    dotClass: 'bg-emerald-500',
+    description: 'Tariffs and handling charges settled in full'
+  },
+  out_for_delivery: {
+    label: 'Out for Delivery',
+    shortLabel: 'Out for Delivery',
+    stepNumber: 8,
+    badgeClass: 'bg-orange-50 text-orange-800 border-orange-200/90 hover:bg-orange-100/70 hover:border-orange-300',
+    dotClass: 'bg-orange-500',
+    description: 'Courier van dispatched for doorstep delivery'
+  },
+  delivered: {
+    label: 'Delivered',
+    shortLabel: 'Delivered',
+    stepNumber: 9,
+    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400',
+    dotClass: 'bg-emerald-600',
+    description: 'Delivered to consignee with proof of delivery'
+  }
+};
+
+interface StatusQuickDropdownProps {
+  shipmentId: string;
+  currentStatus: string;
+  onUpdate: (id: string, newStatus: string) => Promise<void> | void;
+  openUpward?: boolean;
+}
+
+function StatusQuickDropdown({
+  shipmentId,
+  currentStatus,
+  onUpdate,
+  openUpward = false
+}: StatusQuickDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const normalized = normalizeStatusCode(currentStatus);
+  const activeConfig = ORDER_STATUS_CONFIG[normalized] || ORDER_STATUS_CONFIG.purchased;
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleSelect = async (code: TrackingStatusCode) => {
+    if (code === normalized) {
+      setIsOpen(false);
+      return;
+    }
+    setIsUpdating(true);
+    setIsOpen(false);
+    try {
+      await onUpdate(shipmentId, code);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md text-xs font-medium border shadow-2xs transition-colors cursor-pointer select-none ${
+          activeConfig.badgeClass
+        } ${isUpdating ? 'opacity-50 cursor-wait' : ''}`}
+        title="Click to update shipment stage"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${activeConfig.dotClass}`} />
+        <span className="truncate max-w-[150px] sm:max-w-[185px]">{activeConfig.label}</span>
+        <svg
+          className={`w-3 h-3 text-current opacity-60 shrink-0 transition-transform duration-150 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute z-50 w-72 rounded-lg bg-white shadow-xl border border-slate-200 py-1 text-xs text-slate-800 left-0 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
+          <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Update Live Tracking Stage</span>
+            <span className="font-mono text-[9px] text-slate-400">9 stages</span>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto py-0.5 divide-y divide-slate-50">
+            {Object.entries(ORDER_STATUS_CONFIG).map(([key, config]) => {
+              const isSelected = key === normalized;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSelect(key as TrackingStatusCode)}
+                  className={`w-full px-3 py-2 text-left flex items-start gap-2.5 transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-red-50/40 text-slate-900 font-medium'
+                      : 'hover:bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full mt-1 shrink-0 ${config.dotClass}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs truncate ${isSelected ? 'font-semibold text-slate-900' : 'font-normal'}`}>
+                        {config.label}
+                      </span>
+                      {isSelected && (
+                        <svg
+                          className="w-3.5 h-3.5 text-[#EA1D2C] shrink-0 ml-1"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                        >
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 font-normal">
+                      {config.description}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface UserRowActionMenuProps {
+  user: any;
+  onImpersonate: (id: string, name: string) => void;
+  onEdit: (u: any) => void;
+  onToggleStatus: (id: string, status: string) => void;
+  onDelete: (id: string, name: string) => void;
+  openUpward?: boolean;
+}
+
+function UserRowActionMenu({
+  user,
+  onImpersonate,
+  onEdit,
+  onToggleStatus,
+  onDelete,
+  openUpward = false
+}: UserRowActionMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-block text-right" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
+        title="Admin actions menu"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="5" r="1.75" />
+          <circle cx="12" cy="12" r="1.75" />
+          <circle cx="12" cy="19" r="1.75" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className={`absolute right-0 z-50 w-52 rounded-lg bg-white shadow-xl border border-slate-200 py-1 text-xs text-slate-700 animate-in fade-in zoom-in-95 duration-100 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
+        >
+          <div className="px-3 py-1.5 border-b border-slate-100 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span>Admin Actions</span>
+            <span className="font-mono text-[9px] text-slate-400">Account</span>
+          </div>
+
+          <div className="py-1">
+            {/* 1. Ghost Login (Impersonate) */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onImpersonate(user.id, user.fullName);
+              }}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-800 font-medium transition-colors cursor-pointer group"
+            >
+              <svg className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" viewBox="0 0 24 24">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <div>
+                <span className="block text-xs font-semibold text-slate-900 group-hover:text-[#EA1D2C] transition-colors">Login as User</span>
+                <span className="block text-[10px] text-slate-400">Masquerade session</span>
+              </div>
+            </button>
+
+            {/* 2. Edit Profile */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onEdit(user);
+              }}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span className="text-xs">Edit User Profile</span>
+            </button>
+
+            {/* 3. Suspend / Activate */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onToggleStatus(user.id, user.status);
+              }}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+            >
+              {user.status === 'active' ? (
+                <>
+                  <svg className="w-3.5 h-3.5 text-amber-500 shrink-0 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                  </svg>
+                  <span className="text-xs text-amber-700">Suspend Account</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <span className="text-xs text-emerald-700">Activate Account</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="border-t border-slate-100 pt-1">
+            {/* 4. Delete User */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                onDelete(user.id, user.fullName);
+              }}
+              className="w-full px-3 py-1.5 text-left flex items-center gap-2 hover:bg-red-50 text-red-600 transition-colors cursor-pointer"
+            >
+              <svg className="w-3.5 h-3.5 text-red-500 shrink-0 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+              </svg>
+              <span className="text-xs font-medium">Delete Account</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminOperationsIsland({ initialTab = 'overview' }: { initialTab?: string }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [shipments, setShipments] = useState<ShipmentRecord[]>([]);
@@ -140,6 +520,57 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
       setToastNotification(null);
     }, 3000);
   };
+
+  // Live Invoices state from server
+  const [serverInvoices, setServerInvoices] = useState<any[]>([]);
+
+  // Selective Product Invoicing & Payment Collection (In-Page Studio, no popup)
+  const [invoiceSubView, setInvoiceSubView] = useState<'list' | 'generate'>('list');
+  const [selectedShipmentForInvoice, setSelectedShipmentForInvoice] = useState<ShipmentRecord | null>(null);
+  const [invoiceSelectedItems, setInvoiceSelectedItems] = useState<Record<string, boolean>>({});
+  const [invoiceItemArrivedQtys, setInvoiceItemArrivedQtys] = useState<Record<string, number>>({});
+  const [invoiceItemArrivedWeights, setInvoiceItemArrivedWeights] = useState<Record<string, number>>({});
+  const [invoiceRatePerKg, setInvoiceRatePerKg] = useState<number>(750);
+  const [invoiceCustomNumber, setInvoiceCustomNumber] = useState<string>('');
+  const [invoiceDueDate, setInvoiceDueDate] = useState<string>('');
+  const [invoicePaymentStatus, setInvoicePaymentStatus] = useState<'pending' | 'paid'>('pending');
+  const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<string>('Bank Wire (EFT / RTGS)');
+  const [invoiceNotes, setInvoiceNotes] = useState<string>('');
+  const [isSubmittingInvoice, setIsSubmittingInvoice] = useState(false);
+
+  // Convert Quote to Shipment Modal (with budget negotiation and full editing)
+  const [showConvertQuoteModal, setShowConvertQuoteModal] = useState(false);
+  const [selectedQuoteForConvert, setSelectedQuoteForConvert] = useState<QuoteRecord | null>(null);
+  const [convertNegotiatedPrice, setConvertNegotiatedPrice] = useState<number>(0);
+  const [convertCurrency, setConvertCurrency] = useState<string>('BDT');
+  const [convertPricingNotes, setConvertPricingNotes] = useState<string>('');
+  const [convertMode, setConvertMode] = useState<'air' | 'sea' | 'road' | 'hand_carry'>('air');
+  const [convertServiceLevel, setConvertServiceLevel] = useState<'standard' | 'express' | 'priority'>('express');
+  const [convertOriginCountry, setConvertOriginCountry] = useState<string>('China');
+  const [convertOriginCity, setConvertOriginCity] = useState<string>('Guangzhou');
+  const [convertDestCountry, setConvertDestCountry] = useState<string>('Bangladesh');
+  const [convertDestCity, setConvertDestCity] = useState<string>('Dhaka');
+  const [convertCargoDescription, setConvertCargoDescription] = useState<string>('');
+  const [convertProductName, setConvertProductName] = useState<string>('');
+  const [convertTotalWeightKg, setConvertTotalWeightKg] = useState<number>(0);
+  const [convertTotalCbm, setConvertTotalCbm] = useState<number>(0);
+  const [convertQuantity, setConvertQuantity] = useState<number>(1);
+  const [convertPackagingType, setConvertPackagingType] = useState<string>('carton');
+  const [convertRecipientName, setConvertRecipientName] = useState<string>('');
+  const [convertRecipientPhone, setConvertRecipientPhone] = useState<string>('');
+  const [convertRecipientAddress, setConvertRecipientAddress] = useState<string>('');
+  const [convertCarrierName, setConvertCarrierName] = useState<string>('');
+  const [convertVoyageOrFlight, setConvertVoyageOrFlight] = useState<string>('');
+  const [convertItems, setConvertItems] = useState<Array<{
+    description: string;
+    itemCode?: string;
+    packagingType?: string;
+    quantity: number;
+    weightKg: number;
+    cbm: number;
+    categoryTag: 'General' | 'Commercial' | 'Liquids' | 'Dangerous' | 'Perishable' | 'Electronics';
+  }>>([]);
+  const [isConvertingQuote, setIsConvertingQuote] = useState(false);
 
   // New Consignment Form State
   const [newCustName, setNewCustName] = useState('');
@@ -709,6 +1140,12 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
     const handleUrlChange = () => {
       const url = new URL(window.location.href);
       const tabParam = url.searchParams.get('tab');
+      if (tabParam === 'email') {
+        setActiveTab('overview');
+        url.searchParams.set('tab', 'overview');
+        window.history.replaceState({}, '', url.toString());
+        return;
+      }
       if (tabParam && tabParam !== activeTab) {
         setActiveTab(tabParam);
       }
@@ -751,19 +1188,19 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
         }
       };
 
-      const [resShip, resQte, resWh, resCust, resAudit, resUsers, resConfig] = await Promise.all([
+      const [resShip, resQte, resWh, resCust, resAudit, resUsers, resConfig, resInv] = await Promise.all([
         fetch(`/api/shipments?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, shipments: [] })),
         fetch(`/api/quotes?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, quotes: [] })),
         fetch(`/api/warehouses?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, warehouses: [] })),
         fetch(`/api/admin/customers?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, customers: [] })),
         fetch(`/api/admin/audit-logs?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, logs: [] })),
         fetch(`/api/admin/users?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, users: [] })),
-        fetch(`/api/admin/shipping-config?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false }))
+        fetch(`/api/admin/shipping-config?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false })),
+        fetch(`/api/invoices?_t=${t}`, fetchOpts).then((r) => r.json()).catch(() => ({ success: false, invoices: [] }))
       ]);
 
       if (resShip.success && resShip.shipments) {
         setShipments(resShip.shipments);
-        
       }
       if (resQte.success && resQte.quotes) setQuotes(resQte.quotes);
       if (resWh.success && resWh.warehouses) setWarehouses(resWh.warehouses);
@@ -771,6 +1208,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
       if (resAudit.success && resAudit.logs) setAuditLogs(resAudit.logs);
       if (resUsers.success && resUsers.users) setUsers(resUsers.users);
       if (resConfig.success && resConfig.config) setAdminShippingConfig(resConfig.config);
+      if (resInv.success && resInv.invoices) setServerInvoices(resInv.invoices);
 
       if (manualSync) {
         setSyncState('synced');
@@ -1223,20 +1661,261 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
     }
   };
 
-  // Handler: Convert Quote to Shipment
-  const handleConvertQuote = async (quoteId: string, quoteNumber: string) => {
-    if (!confirm(`Convert quote ${quoteNumber} into an active operational shipment?`)) return;
+  // =========================================================
+  // QUOTE CONVERSION HANDLERS (Negotiation, Edit & Conversion)
+  // =========================================================
+  const handleOpenConvertQuote = (q: QuoteRecord) => {
+    setSelectedQuoteForConvert(q);
+    const latestRev = q.revisions && q.revisions.length > 0 ? q.revisions[0] : null;
+    setConvertNegotiatedPrice(latestRev ? latestRev.totalAmount : 0);
+    setConvertCurrency(latestRev ? latestRev.currency : 'BDT');
+    setConvertPricingNotes(latestRev?.notes || '');
+    setConvertMode((q.mode || 'air') as any);
+    setConvertServiceLevel(q.serviceType === 'door_to_door' ? 'express' : 'standard');
+    setConvertOriginCountry(q.originCountry || 'China');
+    setConvertOriginCity(q.originCity || 'Guangzhou');
+    setConvertDestCountry(q.destCountry || 'Bangladesh');
+    setConvertDestCity(q.destCity || 'Dhaka');
+    setConvertCargoDescription(q.cargoDescription || 'Commercial Freight Cargo');
+    setConvertProductName(q.productName || q.cargoDescription || 'Commercial Freight Cargo');
+    setConvertTotalWeightKg(q.totalWeightKg || 10);
+    setConvertTotalCbm(q.totalCbm || 0.1);
+    setConvertQuantity(q.quantity || 1);
+    setConvertPackagingType(q.packagingType || 'carton');
+    setConvertRecipientName(q.guestName || 'Consignee Partner');
+    setConvertRecipientPhone(q.guestPhone || '+880 1711-000000');
+    setConvertRecipientAddress(`${q.destCity || 'Dhaka'}, Bangladesh`);
+    setConvertCarrierName(q.mode === 'air' ? 'GoShipping Air Priority' : q.mode === 'sea' ? 'GoShipping Ocean Line' : 'GoShipping Surface');
+    setConvertVoyageOrFlight(q.mode === 'air' ? 'Flight GOSH-CARGO' : 'Vessel GOSH-VOYAGE');
+
+    setConvertItems([
+      {
+        description: q.cargoDescription || 'Commercial Freight Goods',
+        itemCode: `#QTE-ITM-01`,
+        quantity: q.quantity || 1,
+        weightKg: q.totalWeightKg || 10,
+        cbm: q.totalCbm || 0.1,
+        packagingType: q.packagingType || 'carton',
+        categoryTag: 'Commercial'
+      }
+    ]);
+
+    setShowConvertQuoteModal(true);
+  };
+
+  const handleSaveConvertQuote = async (withEdits = true) => {
+    if (!selectedQuoteForConvert) return;
+    setIsConvertingQuote(true);
     try {
-      const res = await fetch(`/api/quotes/${quoteId}/convert`, { method: 'POST' });
+      const payload = withEdits ? {
+        negotiatedPrice: convertNegotiatedPrice,
+        currency: convertCurrency,
+        pricingNotes: convertPricingNotes,
+        mode: convertMode,
+        serviceLevel: convertServiceLevel,
+        originCountry: convertOriginCountry,
+        originCity: convertOriginCity,
+        destCountry: convertDestCountry,
+        destCity: convertDestCity,
+        cargoDescription: convertCargoDescription,
+        productName: convertProductName,
+        totalWeightKg: convertTotalWeightKg,
+        totalCbm: convertTotalCbm,
+        totalPieces: convertQuantity,
+        packagingType: convertPackagingType,
+        recipientName: convertRecipientName,
+        recipientPhone: convertRecipientPhone,
+        recipientAddress: convertRecipientAddress,
+        carrierName: convertCarrierName,
+        voyageOrFlightNumber: convertVoyageOrFlight,
+        items: convertItems
+      } : {};
+
+      const res = await fetch(`/api/quotes/${selectedQuoteForConvert.id}/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Failed to convert quote');
       }
+
       const data = await res.json();
-      alert(`Quote converted into shipment: ${data.shipmentId}`);
-      loadData();
+      showToast(`Quote ${selectedQuoteForConvert.quoteNumber} converted to shipment ${data.shipmentId}!`, 'success');
+      setShowConvertQuoteModal(false);
+      setSelectedQuoteForConvert(null);
+      await loadData();
     } catch (err: any) {
-      alert(err.message);
+      alert(err.message || 'Error converting quote');
+    } finally {
+      setIsConvertingQuote(false);
+    }
+  };
+
+  // Legacy single-click fallback handler
+  const handleConvertQuote = async (quoteId: string, quoteNumber: string) => {
+    const quote = quotes.find(q => q.id === quoteId);
+    if (quote) {
+      handleOpenConvertQuote(quote);
+    } else {
+      handleSaveConvertQuote(false);
+    }
+  };
+
+  // =========================================================
+  // SELECTIVE PRODUCT INVOICE & ARRIVAL HANDLERS (IN-PAGE STUDIO)
+  // =========================================================
+  const getEffectiveShipmentItems = (s: ShipmentRecord | null): ShipmentItem[] => {
+    if (!s) return [];
+    if (s.items && s.items.length > 0) return s.items;
+    return [{
+      id: `${s.id}-item-1`,
+      shipmentId: s.id,
+      itemCode: `#${s.trackingNumber?.slice(-6) || 'PKG-1'}`,
+      description: s.productName || 'General Commercial Consignment',
+      packagingType: s.mode === 'air' ? 'carton' : 'pallet',
+      quantity: s.totalPieces || 1,
+      weightKg: s.totalWeightKg || 100,
+      cbm: s.totalCbm || 0.5,
+      categoryTag: 'Commercial',
+      arrived: true,
+      arrivedQuantity: s.totalPieces || 1,
+      arrivedWeightKg: s.totalWeightKg || 100
+    }];
+  };
+
+  const handleOpenGenerateInvoice = (shipment: ShipmentRecord) => {
+    setSelectedShipmentForInvoice(shipment);
+    const randomSeq = Math.floor(1000 + Math.random() * 9000);
+    setInvoiceCustomNumber(`INV-2026-${randomSeq}`);
+
+    const isAir = shipment.mode === 'air';
+    const isSea = shipment.mode === 'sea';
+    const isHandCarry = shipment.mode === 'hand_carry';
+    const defaultRate = isAir ? 750 : isSea ? 240 : isHandCarry ? 1450 : 500;
+    setInvoiceRatePerKg(defaultRate);
+
+    const items = getEffectiveShipmentItems(shipment);
+    const selMap: Record<string, boolean> = {};
+    const qtyMap: Record<string, number> = {};
+    const weightMap: Record<string, number> = {};
+
+    items.forEach((it) => {
+      selMap[it.id] = true;
+      qtyMap[it.id] = it.quantity || 1;
+      weightMap[it.id] = it.weightKg || Math.round((shipment.totalWeightKg || 100) / items.length);
+    });
+
+    setInvoiceSelectedItems(selMap);
+    setInvoiceItemArrivedQtys(qtyMap);
+    setInvoiceItemArrivedWeights(weightMap);
+    setInvoicePaymentStatus('pending');
+    setInvoicePaymentMethod('Bank Wire (EFT / RTGS)');
+    setInvoiceDueDate(new Date(Date.now() + 7 * 86400000).toLocaleDateString('en-GB'));
+    setInvoiceNotes(`Commercial freight tariff and customs clearance invoice for ${shipment.trackingNumber}`);
+    setInvoiceSubView('generate');
+    switchTab('invoices');
+  };
+
+  const handleSelectShipmentForInvoice = (shipmentId: string) => {
+    const s = shipments.find(item => item.id === shipmentId);
+    if (s) {
+      handleOpenGenerateInvoice(s);
+    }
+  };
+
+  const effectiveInvoiceItems = useMemo(() => {
+    return getEffectiveShipmentItems(selectedShipmentForInvoice);
+  }, [selectedShipmentForInvoice]);
+
+  const computedArrivedWeight = useMemo(() => {
+    if (!effectiveInvoiceItems || effectiveInvoiceItems.length === 0) return 0;
+    let sum = 0;
+    for (const it of effectiveInvoiceItems) {
+      if (invoiceSelectedItems[it.id]) {
+        const w = invoiceItemArrivedWeights[it.id] !== undefined ? invoiceItemArrivedWeights[it.id] : it.weightKg;
+        sum += Number(w) || 0;
+      }
+    }
+    return Math.round(sum * 10) / 10;
+  }, [effectiveInvoiceItems, invoiceSelectedItems, invoiceItemArrivedWeights]);
+
+  const computedSelectedCount = useMemo(() => {
+    if (!effectiveInvoiceItems || effectiveInvoiceItems.length === 0) return 0;
+    return effectiveInvoiceItems.filter(it => invoiceSelectedItems[it.id]).length;
+  }, [effectiveInvoiceItems, invoiceSelectedItems]);
+
+  const computedBaseFreight = Math.round(computedArrivedWeight * invoiceRatePerKg);
+  const computedCustoms = Math.round(computedBaseFreight * 0.05);
+  const computedTHC = selectedShipmentForInvoice?.mode === 'sea' ? 8500 : 2500;
+  const computedFuel = selectedShipmentForInvoice?.mode === 'air' ? 2200 : 1500;
+  const computedSubtotal = computedBaseFreight + computedCustoms + computedTHC + computedFuel;
+  const computedVAT = Math.round(computedSubtotal * 0.15);
+  const computedTotalBDT = computedSubtotal + computedVAT;
+
+  const handleCreateShipmentInvoice = async () => {
+    if (!selectedShipmentForInvoice) return;
+
+    // Filter only selected items
+    const selectedList: any[] = [];
+    for (const it of effectiveInvoiceItems) {
+      if (invoiceSelectedItems[it.id]) {
+        selectedList.push({
+          itemId: it.id,
+          itemCode: it.itemCode,
+          description: it.description,
+          packagingType: it.packagingType,
+          arrivedQuantity: invoiceItemArrivedQtys[it.id] !== undefined ? invoiceItemArrivedQtys[it.id] : it.quantity,
+          totalQuantity: it.quantity,
+          weightKg: invoiceItemArrivedWeights[it.id] !== undefined ? invoiceItemArrivedWeights[it.id] : it.weightKg,
+          cbm: it.cbm,
+          ratePerKg: invoiceRatePerKg
+        });
+      }
+    }
+
+    if (selectedList.length === 0) {
+      showToast('Please select at least one arrived product to include in this invoice.', 'error');
+      return;
+    }
+
+    setIsSubmittingInvoice(true);
+    try {
+      const payload = {
+        shipmentId: selectedShipmentForInvoice.id,
+        invoiceNumber: invoiceCustomNumber,
+        ratePerKg: invoiceRatePerKg,
+        dueDate: invoiceDueDate,
+        paymentMethod: invoicePaymentMethod,
+        status: invoicePaymentStatus,
+        notes: invoiceNotes,
+        selectedItems: selectedList
+      };
+
+      const res = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Failed to generate invoice');
+      }
+
+      const data = await res.json();
+      showToast(`Invoice ${data.invoice.invoiceNumber} generated successfully!`, 'success');
+      setInvoiceSubView('list');
+      await loadData();
+
+      // Open preview immediately
+      setPreviewInvoice(data.invoice);
+    } catch (err: any) {
+      showToast(err.message || 'Error generating invoice', 'error');
+    } finally {
+      setIsSubmittingInvoice(false);
     }
   };
 
@@ -1722,6 +2401,12 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
           title: 'Orders & Live Tracking',
           subtitle: 'Manage shipments, update delivery status, and view routes'
         };
+      case 'pos_ledger':
+      case 'ledger':
+        return {
+          title: 'POS Sourcing & Freight Ledger',
+          subtitle: 'All-in-One operational ledger, live RMB/BDT currency conversions, courier dispatch & 80mm receipt generator'
+        };
       case 'quotes':
         return {
           title: 'Price Quotes',
@@ -1752,11 +2437,6 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
         return {
           title: 'Activity Logs',
           subtitle: 'History of admin actions, logins, and status updates'
-        };
-      case 'email':
-        return {
-          title: 'Email Service & Status',
-          subtitle: 'Email delivery status, notification logs, and settings'
         };
       case 'new_order':
         return {
@@ -1839,9 +2519,72 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
       </header>
 
       {/* Main Content Workspace */}
-      <main className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
-        {/* KPI COUNTER CARDS (Visible across overview, orders, quotes, etc.) */}
-        {activeTab !== 'new_order' && (
+      <main className="flex-1 overflow-y-auto p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+        {loading ? (
+          <div className="space-y-6 animate-in fade-in duration-150">
+            {activeTab === 'overview' && <OverviewSkeleton />}
+
+            {(activeTab === 'shipments' || activeTab === 'orders' || activeTab === 'tracking') && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <StatCardSkeleton key={i} />
+                  ))}
+                </div>
+                <TableTabSkeleton columns={7} rows={6} />
+              </>
+            )}
+
+            {(activeTab === 'invoices' || activeTab === 'invoice') && (
+              <InvoicesTabSkeleton />
+            )}
+
+            {activeTab === 'quotes' && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <StatCardSkeleton key={i} />
+                  ))}
+                </div>
+                <TableTabSkeleton columns={6} rows={5} />
+              </>
+            )}
+
+            {(activeTab === 'users' || activeTab === 'customers') && (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <StatCardSkeleton key={i} />
+                  ))}
+                </div>
+                <TableTabSkeleton columns={6} rows={5} />
+              </>
+            )}
+
+            {activeTab === 'warehouses' && (
+              <WarehousesSkeleton />
+            )}
+
+            {activeTab === 'audit' && (
+              <TableTabSkeleton columns={5} rows={6} hasFilters={false} />
+            )}
+
+            {activeTab === 'new_order' && (
+              <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-6 shadow-xs animate-pulse">
+                <div className="h-6 w-48 bg-slate-200 rounded" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                  <div className="h-10 bg-slate-100 rounded" />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* KPI COUNTER CARDS (Visible across overview, orders, quotes, etc.) */}
+        {activeTab !== 'new_order' && activeTab !== 'pos_ledger' && activeTab !== 'ledger' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg p-5 border border-slate-200 space-y-1 shadow-xs">
               <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Shipments</span>
@@ -2100,41 +2843,38 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                     <p className="text-xs text-slate-500">Latest shipments and live tracking updates</p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => switchTab('shipments')}
-                    className="text-xs font-bold text-[#EA1D2C] hover:underline"
+                    className="h-7 px-2.5 rounded-md border border-slate-200 hover:border-red-200 bg-white hover:bg-red-50/40 text-xs font-semibold text-slate-700 hover:text-[#EA1D2C] shadow-2xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    View All ({shipments.length})
+                    <span>View All Orders</span>
+                    <span className="font-mono text-[10px] text-slate-400">({shipments.length})</span>
+                    <span className="text-[11px]">→</span>
                   </button>
                 </div>
 
                 <div className="overflow-x-auto border border-slate-200 rounded-lg">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200 text-[10px] tracking-wider">
+                    <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-slate-200 text-[10px] tracking-wider">
                       <tr>
                         <th className="py-2.5 px-3">Tracking Code</th>
                         <th className="py-2.5 px-3">Customer</th>
                         <th className="py-2.5 px-3">Route &amp; Carrier</th>
-                        <th className="py-2.5 px-3">Status (Click to update)</th>
+                        <th className="py-2.5 px-3">Live Status</th>
                         <th className="py-2.5 px-3 text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {shipments.slice(0, 5).map((s) => (
+                      {shipments.slice(0, 5).map((s, idx) => (
                         <tr key={s.id} className="hover:bg-slate-50/70 transition-colors">
                           <td className="py-2.5 px-3 font-mono font-bold text-slate-900">
                             <div>{s.trackingNumber}</div>
-                            <a
-                              href={`/tracking?code=${encodeURIComponent(s.trackingNumber)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[10px] text-[#EA1D2C] hover:underline flex items-center gap-1 font-sans mt-0.5"
-                            >
-                              <span>Public View</span>
-                              <span>↗</span>
-                            </a>
+                            <div className="text-[10px] text-slate-400 font-sans font-normal mt-0.5">
+                              {s.packageCount || s.items.length} pkg · {s.mode?.toUpperCase()}
+                            </div>
                           </td>
                           <td className="py-2.5 px-3">
-                            <div className="font-semibold text-slate-800">{s.customerName}</div>
+                            <div className="font-semibold text-slate-800 truncate max-w-[140px] sm:max-w-[180px]">{s.customerName}</div>
                             <div className="text-[10px] text-slate-400">{s.items.length} units · {s.totalWeightKg} KG</div>
                           </td>
                           <td className="py-2.5 px-3">
@@ -2144,22 +2884,12 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                             <div className="text-[10px] text-slate-400 font-mono uppercase">{s.mode} · {s.voyageOrFlightNumber}</div>
                           </td>
                           <td className="py-2.5 px-3">
-                            <select
-                              value={normalizeStatusCode(s.status)}
-                              onChange={(e) => handleQuickStatusUpdate(s.id, e.target.value)}
-                              className={`appearance-none px-2 py-1 rounded text-[11px] font-bold border cursor-pointer ${getStatusBadge(normalizeStatusCode(s.status))}`}
-                              title="Click to update live tracker status"
-                            >
-                              <option value="purchased">PURCHASED</option>
-                              <option value="cn_warehouse_received">CN WAREHOUSE RECEIVED</option>
-                              <option value="dispatched_from_china">DISPATCHED FROM CHINA</option>
-                              <option value="arrived_dhaka_airport">ARRIVED DHAKA AIRPORT</option>
-                              <option value="awaiting_customs">AWAITING CUSTOMS CLEARANCE</option>
-                              <option value="bd_warehouse_received">BD WAREHOUSE RECEIVED</option>
-                              <option value="payment_received">PAYMENT RECEIVED</option>
-                              <option value="out_for_delivery">OUT FOR DELIVERY</option>
-                              <option value="delivered">DELIVERED</option>
-                            </select>
+                            <StatusQuickDropdown
+                              shipmentId={s.id}
+                              currentStatus={s.status}
+                              onUpdate={handleQuickStatusUpdate}
+                              openUpward={idx >= 3}
+                            />
                           </td>
                           <td className="py-2.5 px-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
@@ -2167,13 +2897,45 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                                 href={`/tracking?code=${encodeURIComponent(s.trackingNumber)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition-none inline-flex items-center gap-0.5"
-                                title="Open Live Tracker"
+                                className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md text-xs font-semibold text-slate-700 bg-white hover:text-[#EA1D2C] hover:bg-red-50/50 border border-slate-200 hover:border-red-200 shadow-2xs hover:shadow-xs transition-colors cursor-pointer group shrink-0"
+                                title="Open Live Multi-Modal Tracker"
                               >
+                                <svg
+                                  className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#EA1D2C] transition-colors"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fillOpacity="0.2" />
+                                </svg>
                                 <span>Track</span>
-                                <span className="text-[10px]">↗</span>
+                                <svg
+                                  className="w-3 h-3 text-slate-400 group-hover:text-[#EA1D2C] -ml-0.5 transition-colors"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                >
+                                  <path d="M7 17l9.2-9.2M17 17V8H8" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
                               </a>
 
+                              <button
+                                type="button"
+                                onClick={() => handleOpenGenerateInvoice(s)}
+                                className="h-7 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold shadow-2xs hover:shadow-xs transition-colors cursor-pointer shrink-0"
+                                title="Generate commercial invoice for this order"
+                              >
+                                <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                  <polyline points="14 2 14 8 20 8" />
+                                  <line x1="16" y1="13" x2="8" y2="13" />
+                                  <line x1="16" y1="17" x2="8" y2="17" />
+                                </svg>
+                                <span>Invoice</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -3584,7 +4346,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
-                  {filteredShipments.map((s) => {
+                  {filteredShipments.map((s, idx) => {
                     const linkedCust = allCustomerOptions.find((c) => {
                       const matchId = c.id && s.customerId && c.id.toLowerCase() === s.customerId.toLowerCase();
                       const matchName = c.fullName && s.customerName && c.fullName.toLowerCase() === s.customerName.toLowerCase();
@@ -3715,38 +4477,53 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
 
                       {/* 6. Operational Status (Sleek Interactive Dropdown) */}
                       <td className="py-2.5 px-3">
-                        <div className="relative inline-flex items-center w-full max-w-[150px]">
-                          <select
-                            value={normalizeStatusCode(s.status)}
-                            onChange={(e) => handleQuickStatusUpdate(s.id, e.target.value)}
-                            className={`w-full appearance-none pl-2 pr-5 py-1 rounded text-[10px] font-bold tracking-tight border cursor-pointer outline-none focus:ring-1 focus:ring-offset-1 transition-none shadow-2xs truncate ${getStatusBadge(normalizeStatusCode(s.status))}`}
-                            title="Change live tracking status"
-                          >
-                            <option value="purchased">PURCHASED</option>
-                            <option value="cn_warehouse_received">CN RECEIVED</option>
-                            <option value="dispatched_from_china">DISPATCHED CN</option>
-                            <option value="arrived_dhaka_airport">ARRIVED DAC</option>
-                            <option value="awaiting_customs">CUSTOMS HOLD</option>
-                            <option value="bd_warehouse_received">BD RECEIVED</option>
-                            <option value="payment_received">PAID</option>
-                            <option value="out_for_delivery">OUT FOR DELIVERY</option>
-                            <option value="delivered">DELIVERED</option>
-                          </select>
-                          <svg className="w-3 h-3 absolute right-1.5 pointer-events-none opacity-60 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                        </div>
+                        <StatusQuickDropdown
+                          shipmentId={s.id}
+                          currentStatus={s.status}
+                          onUpdate={handleQuickStatusUpdate}
+                          openUpward={idx >= Math.max(0, filteredShipments.length - 3)}
+                        />
                       </td>
 
                       {/* 7. Actions Desk */}
                       <td className="py-2.5 px-3 text-right pr-3">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <a
+                            href={`/tracking?code=${encodeURIComponent(s.trackingNumber)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="h-7 px-2 inline-flex items-center gap-1 rounded-md text-xs font-semibold text-slate-700 bg-white hover:text-[#EA1D2C] hover:bg-red-50/50 border border-slate-200 hover:border-red-200 shadow-2xs hover:shadow-xs transition-colors cursor-pointer group shrink-0"
+                            title="Open Live Multi-Modal Tracker"
+                          >
+                            <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#EA1D2C] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10" />
+                              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fillOpacity="0.2" />
+                            </svg>
+                            <span className="hidden sm:inline">Track</span>
+                            <svg className="w-3 h-3 text-slate-400 group-hover:text-[#EA1D2C] -ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M7 17l9.2-9.2M17 17V8H8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </a>
 
+                          <button
+                            type="button"
+                            onClick={() => handleOpenGenerateInvoice(s)}
+                            className="h-7 px-2.5 inline-flex items-center gap-1 rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold shadow-2xs hover:shadow-xs transition-colors cursor-pointer"
+                            title="Generate invoice & select arrived products for payment collection"
+                          >
+                            <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                              <line x1="16" y1="13" x2="8" y2="13" />
+                              <line x1="16" y1="17" x2="8" y2="17" />
+                            </svg>
+                            <span>Invoice</span>
+                          </button>
 
                           <button
                             type="button"
                             onClick={() => handleDeleteShipment(s.id, s.trackingNumber)}
-                            className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-none cursor-pointer"
+                            className="h-7 w-7 inline-flex items-center justify-center rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
                             title="Delete Order"
                             aria-label="Delete Order"
                           >
@@ -3891,13 +4668,24 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                             {q.revisions.length > 0 ? 'Revise Price' : 'Price Quote'}
                           </button>
 
-                          {q.status !== 'converted' && (
+                          {q.status === 'converted_to_shipment' || q.status === 'converted' ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold">
+                              <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              <span>Converted</span>
+                            </span>
+                          ) : (
                             <button
                               type="button"
-                              onClick={() => handleConvertQuote(q.id, q.quoteNumber)}
-                              className="px-2.5 py-1 rounded border border-slate-200 hover:bg-slate-50 text-slate-700 text-[11px] font-semibold transition-colors"
+                              onClick={() => handleOpenConvertQuote(q)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-slate-900 hover:bg-black text-white text-[11px] font-semibold transition-none shadow-2xs cursor-pointer"
+                              title="Negotiate final budget & convert quote to active shipment"
                             >
-                              Convert
+                              <span>Convert to Shipment</span>
+                              <svg className="w-3 h-3 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
                             </button>
                           )}
                         </div>
@@ -4005,14 +4793,33 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             };
           });
 
+          // Merge server-generated invoices if any exist
+          const mergedInvoices = (() => {
+            if (serverInvoices && serverInvoices.length > 0) {
+              const serverList = serverInvoices.map((inv: any) => {
+                const hasOverride = invoicePaidOverrides[inv.invoiceNumber] !== undefined;
+                const isPaid = hasOverride ? invoicePaidOverrides[inv.invoiceNumber] : inv.status === 'paid';
+                return {
+                  ...inv,
+                  weightKg: inv.totalWeightKg || inv.weightKg || 50,
+                  status: isPaid ? 'paid' : 'pending'
+                };
+              });
+              const serverInvoiceNums = new Set(serverList.map((i: any) => i.invoiceNumber));
+              const nonDuplicateDerived = derivedInvoices.filter((d) => !serverInvoiceNums.has(d.invoiceNumber));
+              return [...serverList, ...nonDuplicateDerived];
+            }
+            return derivedInvoices;
+          })();
+
           // Metrics
-          const totalInvoicedBDT = derivedInvoices.reduce((acc, inv) => acc + inv.totalBDT, 0);
-          const totalPaidBDT = derivedInvoices.filter(inv => inv.status === 'paid').reduce((acc, inv) => acc + inv.totalBDT, 0);
+          const totalInvoicedBDT = mergedInvoices.reduce((acc, inv) => acc + inv.totalBDT, 0);
+          const totalPaidBDT = mergedInvoices.filter(inv => inv.status === 'paid').reduce((acc, inv) => acc + inv.totalBDT, 0);
           const totalPendingBDT = totalInvoicedBDT - totalPaidBDT;
           const paidPercentage = totalInvoicedBDT > 0 ? Math.round((totalPaidBDT / totalInvoicedBDT) * 100) : 0;
 
           // Filter invoices: Real-time search by invoice #, customer name, company, email, phone & tracking #
-          const filteredInvoices = derivedInvoices.filter(inv => {
+          const filteredInvoices = mergedInvoices.filter(inv => {
             const q = invoiceSearch.trim().toLowerCase();
             const matchesStatus = invoiceStatusFilter === 'all' || inv.status === invoiceStatusFilter;
 
@@ -4043,6 +4850,510 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             return matchesSearch && matchesStatus;
           });
 
+          // IF IN GENERATE INVOICE STUDIO VIEW (IN-PAGE, NO POPUP, NO RELOAD)
+          if (invoiceSubView === 'generate') {
+            const activeShipment = selectedShipmentForInvoice || shipments[0];
+            if (!activeShipment) {
+              return (
+                <div className="bg-white rounded-xl border border-slate-200 p-8 text-center space-y-3">
+                  <p className="text-slate-500 text-sm">No shipments currently available to invoice.</p>
+                  <button
+                    type="button"
+                    onClick={() => setInvoiceSubView('list')}
+                    className="px-4 py-2 bg-slate-900 text-white rounded-md text-xs font-semibold cursor-pointer"
+                  >
+                    Back to Invoices
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-5 font-['Inter',sans-serif]">
+                {/* 1. Header Navigation Strip */}
+                <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setInvoiceSubView('list')}
+                        className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors cursor-pointer shadow-2xs"
+                      >
+                        <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                        <span>Back to Invoices</span>
+                      </button>
+
+                      <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-bold text-slate-900 font-['Manrope',sans-serif]">
+                            Generate Commercial Invoice
+                          </h2>
+                          <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-red-50 text-[#EA1D2C] font-semibold border border-red-200">
+                            {activeShipment.trackingNumber}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Select arrived items, review freight charges, and issue invoice directly to client
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setInvoiceSubView('list')}
+                        className="px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={isSubmittingInvoice || computedSelectedCount === 0}
+                        onClick={handleCreateShipmentInvoice}
+                        className="px-4 py-1.5 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] disabled:opacity-50 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+                      >
+                        {isSubmittingInvoice ? (
+                          <span>Generating...</span>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                            <span>Issue Invoice ({computedSelectedCount} Products)</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Target Shipment Selector & Consignment Details */}
+                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Target Shipment Consignment
+                      </span>
+                      <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+                        Client &amp; Transit Details
+                      </h3>
+                    </div>
+
+                    {/* Dropdown to switch shipment dynamically */}
+                    <div className="w-full sm:w-96">
+                      <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                        Switch Shipment Order:
+                      </label>
+                      <select
+                        value={activeShipment.id}
+                        onChange={(e) => handleSelectShipmentForInvoice(e.target.value)}
+                        className="w-full h-8 px-2.5 rounded-md border border-slate-300 bg-slate-50/50 hover:bg-white text-xs font-medium text-slate-800 outline-none focus:border-[#EA1D2C] cursor-pointer"
+                      >
+                        {shipments.map((shp) => (
+                          <option key={shp.id} value={shp.id}>
+                            {shp.trackingNumber} — {shp.customerName} ({shp.originCity} → {shp.destCity}, {shp.mode.toUpperCase()})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Dynamic shipment metadata badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">Customer / Importer</span>
+                      <strong className="text-slate-900 block truncate font-semibold mt-0.5">
+                        {activeShipment.customerName}
+                      </strong>
+                      <span className="text-[11px] text-slate-500 font-mono block truncate">
+                        {activeShipment.customerEmail || activeShipment.customerPhone || 'Verified Account'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">Corridor &amp; Route</span>
+                      <div className="flex items-center gap-1 font-semibold text-slate-900 mt-0.5">
+                        <span>{activeShipment.originCity}</span>
+                        <span className="text-slate-400">→</span>
+                        <span>{activeShipment.destCity}</span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold uppercase border ${
+                          activeShipment.mode === 'air'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : activeShipment.mode === 'sea'
+                            ? 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
+                          {activeShipment.mode.toUpperCase()}
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-500 truncate">
+                          {activeShipment.voyageOrFlightNumber || 'Direct Freight'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">Declared Consignment</span>
+                      <strong className="text-slate-900 font-mono font-semibold block mt-0.5">
+                        {activeShipment.totalWeightKg} KG · {activeShipment.totalCbm} m³
+                      </strong>
+                      <span className="text-[11px] text-slate-500 block truncate">
+                        {activeShipment.totalPieces || effectiveInvoiceItems.length} Total Units
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">Destination Consignee</span>
+                      <strong className="text-slate-900 block truncate font-semibold mt-0.5">
+                        {activeShipment.recipientName || activeShipment.customerName}
+                      </strong>
+                      <span className="text-[11px] text-slate-500 block truncate">
+                        {activeShipment.recipientAddress || 'Dhaka Warehouse'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Arrived Products & Selective Invoicing Table */}
+                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-900">
+                          Select Arrived Products to Invoice
+                        </h3>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          {effectiveInvoiceItems.length} Total Products
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {computedSelectedCount} Selected for Billing
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Check each product that physically arrived at the hub. Unarrived items can be left unchecked for a future invoice.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next: Record<string, boolean> = {};
+                          effectiveInvoiceItems.forEach(it => { next[it.id] = true; });
+                          setInvoiceSelectedItems(next);
+                        }}
+                        className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-md border border-slate-200 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInvoiceSelectedItems({})}
+                        className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-2.5 py-1 rounded-md border border-slate-200 hover:bg-slate-50 cursor-pointer shadow-2xs"
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Informational guidance note (No emojis, clean SVG icon) */}
+                  <div className="p-3 rounded-lg bg-blue-50/60 border border-blue-200/80 flex items-start gap-2.5 text-xs text-blue-900">
+                    <svg className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <div className="text-[11px] leading-relaxed">
+                      <strong>Split Shipment Billing:</strong> You can uncheck items or decrease the arrived quantity/weight if a partial consignment arrived. The customer will only be billed for the selected arrived cargo.
+                    </div>
+                  </div>
+
+                  {/* Table */}
+                  <div className="border border-slate-200 rounded-lg overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead className="bg-slate-50 text-[10px] font-semibold text-slate-600 uppercase border-b border-slate-200 tracking-wider">
+                        <tr>
+                          <th className="py-2.5 px-3 w-12 text-center">Arrived?</th>
+                          <th className="py-2.5 px-3 min-w-[220px]">Product Description &amp; Item Code</th>
+                          <th className="py-2.5 px-3 w-28 text-center">Declared Qty</th>
+                          <th className="py-2.5 px-3 w-32">Arrived Qty</th>
+                          <th className="py-2.5 px-3 w-36">Arrived Weight (KG)</th>
+                          <th className="py-2.5 px-3 w-32 text-right">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 bg-white">
+                        {effectiveInvoiceItems.map((it) => {
+                          const isChecked = !!invoiceSelectedItems[it.id];
+                          const arrivedQty = invoiceItemArrivedQtys[it.id] !== undefined ? invoiceItemArrivedQtys[it.id] : it.quantity;
+                          const arrivedWeight = invoiceItemArrivedWeights[it.id] !== undefined ? invoiceItemArrivedWeights[it.id] : it.weightKg;
+
+                          return (
+                            <tr key={it.id} className={`hover:bg-slate-50/70 transition-colors ${isChecked ? 'bg-emerald-50/20' : ''}`}>
+                              <td className="py-2.5 px-3 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    setInvoiceSelectedItems(prev => ({
+                                      ...prev,
+                                      [it.id]: e.target.checked
+                                    }));
+                                  }}
+                                  className="w-4 h-4 text-[#EA1D2C] rounded border-slate-300 focus:ring-[#EA1D2C] cursor-pointer"
+                                />
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <div className="font-semibold text-slate-900">{it.description}</div>
+                                <div className="text-[10px] text-slate-500 font-mono flex items-center gap-2 mt-0.5">
+                                  <span className="font-semibold text-slate-700">{it.itemCode}</span>
+                                  <span>·</span>
+                                  <span className="capitalize">{it.packagingType?.replace('_', ' ')}</span>
+                                  <span>·</span>
+                                  <span className="text-slate-600">{it.categoryTag}</span>
+                                </div>
+                              </td>
+                              <td className="py-2.5 px-3 text-center font-mono text-slate-700">
+                                {it.quantity} units
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max={it.quantity}
+                                  disabled={!isChecked}
+                                  value={arrivedQty}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value);
+                                    setInvoiceItemArrivedQtys(prev => ({ ...prev, [it.id]: val }));
+                                  }}
+                                  className="w-20 h-7 px-2 font-mono text-xs rounded border border-slate-300 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                />
+                              </td>
+                              <td className="py-2.5 px-3">
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    step="0.1"
+                                    min="0.1"
+                                    disabled={!isChecked}
+                                    value={arrivedWeight}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      setInvoiceItemArrivedWeights(prev => ({ ...prev, [it.id]: val }));
+                                    }}
+                                    className="w-24 h-7 px-2 font-mono text-xs rounded border border-slate-300 bg-white disabled:bg-slate-100 disabled:text-slate-400"
+                                  />
+                                  <span className="text-slate-500 text-[11px] font-mono">KG</span>
+                                </div>
+                              </td>
+                              <td className="py-2.5 px-3 text-right">
+                                {isChecked ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    <span>Arrived &amp; Bill</span>
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                    <svg className="w-3 h-3 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    <span>Pending Arrival</span>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 4. Tariff Calculation & Financial Breakdown */}
+                <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Tariff &amp; Collection Schedule
+                      </span>
+                      <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+                        Billing &amp; Payment Calculation
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-slate-500">Billable Arrived Weight:</span>
+                      <span className="font-mono text-sm font-bold text-slate-900 ml-1.5">{computedArrivedWeight} KG</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">Freight Rate per KG (BDT)</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={invoiceRatePerKg}
+                          onChange={(e) => setInvoiceRatePerKg(Number(e.target.value))}
+                          className="w-full h-8 pl-7 pr-2 font-mono font-bold rounded-md border border-slate-300 bg-white text-slate-900 text-xs focus:border-[#EA1D2C] outline-none"
+                        />
+                        <span className="absolute left-2.5 top-2 text-slate-400 font-mono">৳</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">Invoice Number</label>
+                      <input
+                        type="text"
+                        value={invoiceCustomNumber}
+                        onChange={(e) => setInvoiceCustomNumber(e.target.value)}
+                        className="w-full h-8 px-2.5 font-mono font-semibold rounded-md border border-slate-300 bg-white text-slate-900 text-xs focus:border-[#EA1D2C] outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">Payment Method</label>
+                      <select
+                        value={invoicePaymentMethod}
+                        onChange={(e) => setInvoicePaymentMethod(e.target.value)}
+                        className="w-full h-8 px-2.5 rounded-md border border-slate-300 bg-white text-slate-800 text-xs focus:border-[#EA1D2C] outline-none cursor-pointer"
+                      >
+                        <option value="Bank Wire (EFT / RTGS)">Bank Wire (EFT / RTGS)</option>
+                        <option value="bKash Merchant Pay">bKash Merchant Pay</option>
+                        <option value="Cash on Delivery">Cash on Delivery (COD)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-slate-700 block mb-1">Payment Due Date</label>
+                      <input
+                        type="text"
+                        value={invoiceDueDate}
+                        onChange={(e) => setInvoiceDueDate(e.target.value)}
+                        placeholder="DD/MM/YYYY"
+                        className="w-full h-8 px-2.5 font-mono rounded-md border border-slate-300 bg-white text-slate-900 text-xs focus:border-[#EA1D2C] outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculated Breakdown Card */}
+                  <div className="bg-slate-50/70 p-4 rounded-lg border border-slate-200 space-y-2 font-mono text-xs">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Base Freight ({computedArrivedWeight} KG × ৳{invoiceRatePerKg}):</span>
+                      <span className="font-semibold text-slate-900">৳{computedBaseFreight.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Terminal Handling Charges (THC):</span>
+                      <span className="font-semibold text-slate-900">৳{computedTHC.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Customs Clearance (5%):</span>
+                      <span className="font-semibold text-slate-900">৳{computedCustoms.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Fuel &amp; Security Surcharge:</span>
+                      <span className="font-semibold text-slate-900">৳{computedFuel.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Statutory VAT (15%):</span>
+                      <span className="font-semibold text-slate-900">৳{computedVAT.toLocaleString()}</span>
+                    </div>
+                    <div className="border-t border-slate-200 pt-2 flex justify-between items-baseline font-bold text-sm text-[#EA1D2C]">
+                      <span className="font-sans">Total Amount to Collect:</span>
+                      <span>
+                        ৳{computedTotalBDT.toLocaleString()}
+                        <span className="text-[11px] text-slate-500 font-normal ml-1.5">(~${Math.round(computedTotalBDT / 118).toLocaleString()} USD)</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Initial Payment Status Toggle with ZERO emojis! */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-semibold text-slate-700">Payment Status:</span>
+                      <button
+                        type="button"
+                        onClick={() => setInvoicePaymentStatus(invoicePaymentStatus === 'paid' ? 'pending' : 'paid')}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-none inline-flex items-center gap-1.5 shadow-2xs ${
+                          invoicePaymentStatus === 'paid'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-amber-100 text-amber-800 border border-amber-300'
+                        }`}
+                      >
+                        {invoicePaymentStatus === 'paid' ? (
+                          <>
+                            <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            <span>Marked as Paid &amp; Cleared</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <span>Pending Payment Collection</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="flex-1 max-w-md">
+                      <input
+                        type="text"
+                        placeholder="Optional billing note or terms..."
+                        value={invoiceNotes}
+                        onChange={(e) => setInvoiceNotes(e.target.value)}
+                        className="w-full h-8 px-2.5 rounded-md border border-slate-300 bg-white text-xs text-slate-800 focus:border-[#EA1D2C] outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. Action Footer */}
+                <div className="flex items-center justify-between bg-white rounded-xl border border-slate-200 p-4 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setInvoiceSubView('list')}
+                    className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel &amp; Return
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isSubmittingInvoice || computedSelectedCount === 0}
+                    onClick={handleCreateShipmentInvoice}
+                    className="px-5 py-2 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] disabled:opacity-50 text-white text-xs font-semibold transition-none shadow-sm cursor-pointer flex items-center gap-2"
+                  >
+                    {isSubmittingInvoice ? (
+                      <span>Generating Commercial Invoice...</span>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        <span>Generate Commercial Invoice ({computedSelectedCount} Products · ৳{computedTotalBDT.toLocaleString()})</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          // Otherwise render Invoices List view
           return (
             <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-6 shadow-xs">
               {/* Header Strip */}
@@ -4060,9 +5371,27 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   <button
                     type="button"
                     onClick={() => {
+                      if (shipments.length > 0) {
+                        handleOpenGenerateInvoice(shipments[0]);
+                      } else {
+                        showToast('No active shipments available to invoice', 'error');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold cursor-pointer transition-none shadow-2xs"
+                    title="Select arrived products from a shipment and generate invoice"
+                  >
+                    <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>+ Generate Shipment Invoice</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
                       const csvContent = "data:text/csv;charset=utf-8," + 
                         "Invoice,Customer,Tracking,Mode,WeightKG,TotalBDT,TotalUSD,Status\n" +
-                        derivedInvoices.map(i => `${i.invoiceNumber},"${i.customerName}",${i.trackingNumber},${i.mode},${i.weightKg},${i.totalBDT},${i.totalUSD},${i.status}`).join("\n");
+                        mergedInvoices.map(i => `${i.invoiceNumber},"${i.customerName}",${i.trackingNumber},${i.mode},${i.weightKg},${i.totalBDT},${i.totalUSD},${i.status}`).join("\n");
                       const encodedUri = encodeURI(csvContent);
                       const link = document.createElement("a");
                       link.setAttribute("href", encodedUri);
@@ -4098,7 +5427,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-400 mt-1 block">
-                    {derivedInvoices.length} commercial invoices generated
+                    {mergedInvoices.length} commercial invoices generated
                   </span>
                 </div>
 
@@ -4315,6 +5644,27 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             </div>
           );
         })()}
+
+        {/* ========================================================= */}
+        {/* TAB: POS ALL-IN-ONE SOURCING & FREIGHT LEDGER             */}
+        {/* ========================================================= */}
+        {(activeTab === 'pos_ledger' || activeTab === 'ledger') && (
+          <PosLedgerTerminal showToast={showToast} />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB: HOMEPAGE HERO BANNERS & SLIDER                       */}
+        {/* ========================================================= */}
+        {activeTab === 'banners' && (
+          <BannersManager showToast={showToast} />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB: CLIENT REVIEWS & TESTIMONIALS                        */}
+        {/* ========================================================= */}
+        {(activeTab === 'testimonials' || activeTab === 'reviews') && (
+          <TestimonialsManager showToast={showToast} />
+        )}
 
         {/* ========================================================= */}
         {/* TAB: GLOBAL WAREHOUSE LOCATIONS & CFS HUBS               */}
@@ -4564,18 +5914,18 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
         {/* TAB: USERS & IMPORTERS DIRECTORY                           */}
         {/* ========================================================= */}
         {(activeTab === 'users' || activeTab === 'customers') && (
-          <div className="bg-white rounded-lg p-6 border border-slate-200 space-y-5 shadow-xs">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div className="bg-white rounded-lg p-4 sm:p-5 border border-slate-200 space-y-4 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-bold text-slate-900 font-['Manrope',sans-serif]">
                     Users &amp; Staff
                   </h2>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold whitespace-nowrap">
                     {filteredUsers.length} Registered Users
                   </span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Manage user accounts, roles, and admin permissions
                 </p>
               </div>
@@ -4586,7 +5936,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   resetUserForm();
                   setShowAddUserModal(true);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-bold transition-none shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold transition-none shadow-xs cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <line x1="12" y1="5" x2="12" y2="19" />
@@ -4597,14 +5947,14 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="flex flex-wrap items-center gap-3 text-xs">
-              <div className="relative flex-1 min-w-[220px]">
+            <div className="flex flex-wrap items-center gap-2.5 text-xs">
+              <div className="relative flex-1 min-w-[200px]">
                 <input
                   type="text"
                   placeholder="Search user by name, email, company, or phone..."
                   value={userSearch}
                   onChange={(e) => setUserSearch(e.target.value)}
-                  className="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-200 text-xs bg-slate-50/50 focus:bg-white focus:border-[#EA1D2C] outline-none"
+                  className="w-full h-8 pl-8 pr-3 rounded-md border border-slate-200 text-xs bg-slate-50/50 focus:bg-white focus:border-[#EA1D2C] outline-none"
                 />
                 <svg className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <circle cx="11" cy="11" r="8" />
@@ -4612,7 +5962,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                 </svg>
               </div>
 
-              <div className="w-48">
+              <div className="w-44">
                 <ReferenceSelect
                   value={userRoleFilter}
                   onChange={(val) => setUserRoleFilter(val)}
@@ -4629,7 +5979,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                 />
               </div>
 
-              <div className="w-40">
+              <div className="w-36">
                 <ReferenceSelect
                   value={userStatusFilter}
                   onChange={(val) => setUserStatusFilter(val)}
@@ -4649,7 +5999,7 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   setUserRoleFilter('all');
                   setUserStatusFilter('all');
                 }}
-                className="px-3 py-2 text-slate-500 hover:text-slate-800 text-xs"
+                className="h-8 px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs border border-slate-200 rounded-md hover:bg-slate-50 cursor-pointer"
               >
                 Reset
               </button>
@@ -4658,31 +6008,31 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             {/* Users Table */}
             <div className="overflow-x-auto border border-slate-200 rounded-lg">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200 text-[10px] tracking-wider">
+                <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 text-[11px]">
                   <tr>
-                    <th className="py-3 px-4">User Profile</th>
-                    <th className="py-3 px-4">Role</th>
-                    <th className="py-3 px-4">Company &amp; Phone</th>
-                    <th className="py-3 px-4">Shipments</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Admin Actions</th>
+                    <th className="py-2.5 px-3 min-w-[200px]">User Profile</th>
+                    <th className="py-2.5 px-3 w-[140px] whitespace-nowrap">Role</th>
+                    <th className="py-2.5 px-3 min-w-[170px]">Company &amp; Phone</th>
+                    <th className="py-2.5 px-3 w-[110px] whitespace-nowrap">Shipments</th>
+                    <th className="py-2.5 px-3 w-[90px] whitespace-nowrap">Status</th>
+                    <th className="py-2.5 px-3 w-[60px] text-right whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredUsers.map((u) => {
+                  {filteredUsers.map((u, idx) => {
                     const isSuperAdmin = u.role === 'super_admin';
                     const isOps = u.role === 'ops_manager';
                     const isCustomer = u.role === 'customer';
 
                     return (
                       <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-slate-900 text-white font-semibold text-xs flex items-center justify-center shrink-0">
                               {u.fullName?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="min-w-0">
-                              <strong className="text-slate-900 block truncate font-semibold">
+                              <strong className="text-slate-900 block truncate font-medium text-xs">
                                 {u.fullName}
                               </strong>
                               <span className="text-slate-500 font-mono text-[11px] block truncate">
@@ -4692,45 +6042,56 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td className="py-2.5 px-3 whitespace-nowrap">
                           {isSuperAdmin && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                               Super Admin
                             </span>
                           )}
                           {isOps && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-white">
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-900 text-white border border-slate-800">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
                               Ops Manager
                             </span>
                           )}
                           {u.role === 'warehouse_staff' && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                               Warehouse
                             </span>
                           )}
                           {u.role === 'sales_team' && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
                               Sales Team
                             </span>
                           )}
+                          {u.role === 'support_agent' && (
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+                              Support Agent
+                            </span>
+                          )}
                           {isCustomer && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                               Importer Client
                             </span>
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-slate-800 block">
+                        <td className="py-2.5 px-3">
+                          <span className="font-medium text-slate-800 block text-xs truncate">
                             {u.companyName || u.fullName}
                           </span>
-                          <span className="text-slate-400 font-mono text-[11px]">
+                          <span className="text-slate-400 font-mono text-[11px] block truncate">
                             {u.phone || 'No phone recorded'}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4">
-                          <span className="font-mono font-bold text-slate-900">
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          <span className="font-mono font-medium text-slate-900 text-xs">
                             {u.activeShipmentsCount ?? 0} active
                           </span>
                           <span className="text-slate-400 block text-[10px]">
@@ -4738,73 +6099,30 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4">
+                        <td className="py-2.5 px-3 whitespace-nowrap">
                           {u.status === 'active' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                               Active
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                            <span className="whitespace-nowrap inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                               Suspended
                             </span>
                           )}
                         </td>
 
-                        {/* Admin Action Bar */}
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {/* GHOST LOGIN BUTTON (Login as User without password) */}
-                            <button
-                              type="button"
-                              onClick={() => handleImpersonateUser(u.id, u.fullName)}
-                              className="px-2.5 py-1.5 rounded bg-[var(--color-midnight)] hover:bg-[var(--color-brand-primary)] text-white font-bold text-[11px] inline-flex items-center gap-1.5 transition-none shadow-2xs cursor-pointer"
-                              title="Masquerade & view portal as this user without password"
-                            >
-                              <svg className="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24" aria-hidden="true">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                              </svg>
-                              <span>Login as User</span>
-                            </button>
-
-                            {/* Edit Button */}
-                            <button
-                              type="button"
-                              onClick={() => openEditUserModal(u)}
-                              className="px-2 py-1.5 rounded border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold text-[11px] transition-none cursor-pointer"
-                              title="Edit user details"
-                            >
-                              Edit
-                            </button>
-
-                            {/* Suspend / Activate Toggle */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleUserStatus(u.id, u.status)}
-                              className={`px-2 py-1.5 rounded text-[11px] font-semibold transition-none cursor-pointer ${
-                                u.status === 'active'
-                                  ? 'border border-amber-300 text-amber-800 hover:bg-amber-50'
-                                  : 'border border-emerald-300 text-emerald-800 hover:bg-emerald-50'
-                              }`}
-                              title={u.status === 'active' ? 'Suspend this user' : 'Reactivate this user'}
-                            >
-                              {u.status === 'active' ? 'Suspend' : 'Activate'}
-                            </button>
-
-                            {/* Delete Button */}
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteUser(u.id, u.fullName)}
-                              className="px-2 py-1.5 rounded border border-transparent hover:border-red-200 hover:bg-red-50 text-slate-400 hover:text-red-600 font-semibold text-[11px] transition-none cursor-pointer flex items-center justify-center"
-                              title="Delete user"
-                            >
-                              <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                            </button>
-                          </div>
+                        {/* Admin Action Bar - 3-Dot Dropdown */}
+                        <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                          <UserRowActionMenu
+                            user={u}
+                            onImpersonate={handleImpersonateUser}
+                            onEdit={openEditUserModal}
+                            onToggleStatus={handleToggleUserStatus}
+                            onDelete={handleDeleteUser}
+                            openUpward={idx >= Math.max(0, filteredUsers.length - 2)}
+                          />
                         </td>
                       </tr>
                     );
@@ -4881,440 +6199,6 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TAB: RESEND & EMAIL TELEMETRY                             */}
-        {/* ========================================================= */}
-        {activeTab === 'email' && (
-          <div className="space-y-6">
-            {/* Top Overview Card */}
-            <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <h2 className="text-base font-bold text-slate-900 font-['Manrope',sans-serif]">
-                      Email Service &amp; Status
-                    </h2>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 font-mono">
-                      send.goshipping.com.bd
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Email notifications powered by Resend with verified domain authentication.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={loadEmailStatus}
-                    disabled={loadingEmailStatus}
-                    className="px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-none cursor-pointer flex items-center gap-1.5"
-                  >
-                    <svg className={`w-3.5 h-3.5 text-slate-500 ${loadingEmailStatus ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                      <path d="M3 3v5h5" />
-                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                      <path d="M16 16h5v5" />
-                    </svg>
-                    <span>Check Status</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleVerifyDomain}
-                    disabled={verifyingDomain}
-                    className="px-3.5 py-1.5 rounded-md bg-[#11181E] hover:bg-slate-800 text-white text-xs font-bold transition-none cursor-pointer shadow-xs"
-                  >
-                    {verifyingDomain ? 'Verifying...' : 'Verify DNS on Resend'}
-                  </button>
-                </div>
-              </div>
-
-              {verifyMessage && (
-                <div className="p-3 rounded-md bg-blue-50 border border-blue-200 text-xs text-blue-800 font-semibold">
-                  {verifyMessage}
-                </div>
-              )}
-
-              {/* Gateway Configuration Metric Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Sender Identity (From)</span>
-                  <div className="text-xs font-bold text-slate-900 font-mono mt-1 truncate">
-                    notifications@send.goshipping.com.bd
-                  </div>
-                  <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-block">Strict Branded Domain</span>
-                </div>
-
-                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Ops Alert Desk</span>
-                  <div className="text-xs font-bold text-slate-900 font-mono mt-1 truncate">
-                    ops@goshipping.com.bd
-                  </div>
-                  <span className="text-[10px] text-slate-500 mt-1 inline-block">Direct Operational Alerts</span>
-                </div>
-
-                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Resend Domain Status</span>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className={`w-2 h-2 rounded-full ${emailStatus?.domain?.status === 'verified' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
-                    <span className="text-xs font-bold text-slate-900 uppercase font-mono">
-                      {emailStatus?.domain?.status || 'Verified'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 mt-1 inline-block">
-                    Region: {emailStatus?.domain?.region || 'ap-northeast-1'}
-                  </span>
-                </div>
-
-                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-500">Email Logs &amp; Stats</span>
-                  <div className="text-xs font-bold text-slate-900 mt-1">
-                    5 Automated Workflows
-                  </div>
-                  <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-block">Live on Events</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Hostinger DNS Records Configuration Table */}
-            <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-xs space-y-4">
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h3 className="text-sm font-bold text-slate-900 font-['Manrope',sans-serif]">
-                    Hostinger DNS Records Authentication (DKIM &amp; SPF)
-                  </h3>
-                  <span className="text-[11px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-semibold self-start sm:self-auto">
-                    Sending Domain: send.goshipping.com.bd (Verified)
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Configured records in Hostinger DNS Zone for <code className="text-[0.9em] font-mono bg-slate-100 px-1 py-0.5 rounded">goshipping.com.bd</code> verified for active email delivery.
-                </p>
-              </div>
-
-              {/* Hostinger Step-by-Step Guidance Box */}
-              <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-2">
-                <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                  <span className="text-sm">💡</span>
-                  <span>Hostinger DNS Zone-এ রেকর্ড বসানোর গুরুত্বপূর্ণ নিয়ম:</span>
-                </div>
-                <ul className="list-disc list-inside space-y-1 text-slate-700 pl-1">
-                  <li>
-                    Hostinger-এর <strong>Name</strong> বক্সে কখনোই পুরো ডোমেন <code className="text-[0.9em] font-mono bg-red-50 text-[#EA1D2C] px-1 py-0.2 rounded font-bold">.goshipping.com.bd</code> লিখবেন না (কারণ Hostinger এটি শেষে নিজে যোগ করে নেয়)।
-                  </li>
-                  <li>
-                    নিচে থাকা প্রতিটি রেকর্ডের <strong>"Copy" বাটন</strong> ক্লিক করে Hostinger-এ পেস্ট করুন এবং অবশ্যই <strong>"Add Record"</strong> বাটনে ক্লিক করে সেভ করুন।
-                  </li>
-                </ul>
-              </div>
-
-              <div className="overflow-x-auto border border-slate-200 rounded-lg">
-                <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-slate-50 text-slate-600 uppercase font-bold border-b border-slate-200 text-[10px] tracking-wider font-sans">
-                    <tr>
-                      <th className="py-2.5 px-4">Type</th>
-                      <th className="py-2.5 px-4">Name (Host in Hostinger)</th>
-                      <th className="py-2.5 px-4">Value / Points to</th>
-                      <th className="py-2.5 px-4">TTL</th>
-                      <th className="py-2.5 px-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-[11px]">
-                    {/* Record 1: DKIM TXT */}
-                    <tr className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-[#EA1D2C]">TXT</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">resend._domainkey.send</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('resend._domainkey.send', 'name-dkim')}
-                            className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-sans cursor-pointer transition-none"
-                            title="Copy host name"
-                          >
-                            {copiedDnsField === 'name-dkim' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-slate-600 font-mono text-[10px] max-w-[200px]" title="p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSrNPvk9D/Dd1oAdhZturQcdJKqL+PM9Q4oWeXFPFxO47cZtVeaTzLJNYl1CI2R/49puSRk+vgprLn+Ok7rS6VRNVv+NbfM5TvVEo4VZe93RAZtOLcyO8VX0Jg5Jdvuy6xuj8gUHDyukZGC+nFTLsc5gZD/jFF/a2w9EAcp8ptOwIDAQAB">
-                            p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSrNPvk9D/Dd1oAdhZturQcdJKqL+PM9Q4oWeXFPFxO47cZtVeaTzLJNYl1CI2R/49puSRk+vgprLn+Ok7rS6VRNVv+NbfM5TvVEo4VZe93RAZtOLcyO8VX0Jg5Jdvuy6xuj8gUHDyukZGC+nFTLsc5gZD/jFF/a2w9EAcp8ptOwIDAQAB
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDSrNPvk9D/Dd1oAdhZturQcdJKqL+PM9Q4oWeXFPFxO47cZtVeaTzLJNYl1CI2R/49puSRk+vgprLn+Ok7rS6VRNVv+NbfM5TvVEo4VZe93RAZtOLcyO8VX0Jg5Jdvuy6xuj8gUHDyukZGC+nFTLsc5gZD/jFF/a2w9EAcp8ptOwIDAQAB', 'val-dkim')}
-                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#11181E] hover:bg-slate-800 text-white font-sans shrink-0 cursor-pointer transition-none"
-                            title="Copy complete 226-character DKIM public key"
-                          >
-                            {copiedDnsField === 'val-dkim' ? '✓ Copied Key' : 'Copy Full Key'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-slate-500">Auto / 3600</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[0]?.status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                          {emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[0]?.status === 'verified' ? 'Verified' : 'Pending DNS'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    {/* Record 2: SPF CNAME 1 */}
-                    <tr className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-indigo-600">CNAME</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">rsend.send</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('rsend.send', 'name-spf1')}
-                            className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-sans cursor-pointer transition-none"
-                            title="Copy host name"
-                          >
-                            {copiedDnsField === 'name-spf1' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-600 font-mono text-[10px]">rsend-apne1.forge.rmta.net</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('rsend-apne1.forge.rmta.net', 'val-spf1')}
-                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#11181E] hover:bg-slate-800 text-white font-sans shrink-0 cursor-pointer transition-none"
-                            title="Copy CNAME value"
-                          >
-                            {copiedDnsField === 'val-spf1' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-slate-500">3600</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[1]?.status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                          {emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[1]?.status === 'verified' ? 'Verified' : 'Pending DNS'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    {/* Record 3: SPF CNAME 2 */}
-                    <tr className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-indigo-600">CNAME</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">send.send</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('send.send', 'name-spf2')}
-                            className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-sans cursor-pointer transition-none"
-                            title="Copy host name"
-                          >
-                            {copiedDnsField === 'name-spf2' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-600 font-mono text-[10px]">send.forge.rmta.net</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('send.forge.rmta.net', 'val-spf2')}
-                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#11181E] hover:bg-slate-800 text-white font-sans shrink-0 cursor-pointer transition-none"
-                            title="Copy CNAME value"
-                          >
-                            {copiedDnsField === 'val-spf2' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-slate-500">3600</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[2]?.status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                          {emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[2]?.status === 'verified' ? 'Verified' : 'Pending DNS'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    {/* Record 4: Tracking CNAME */}
-                    <tr className="hover:bg-slate-50/50">
-                      <td className="py-3 px-4 font-bold text-indigo-600">CNAME</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-900">links.send</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('links.send', 'name-track')}
-                            className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-sans cursor-pointer transition-none"
-                            title="Copy host name"
-                          >
-                            {copiedDnsField === 'name-track' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-600 font-mono text-[10px]">links2.resend-dns.com</span>
-                          <button
-                            type="button"
-                            onClick={() => copyDnsValue('links2.resend-dns.com', 'val-track')}
-                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#11181E] hover:bg-slate-800 text-white font-sans shrink-0 cursor-pointer transition-none"
-                            title="Copy CNAME value"
-                          >
-                            {copiedDnsField === 'val-track' ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-slate-500">Auto</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[3]?.status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                          {emailStatus?.domain?.status === 'verified' || emailStatus?.domain?.records?.[3]?.status === 'verified' ? 'Verified' : 'Pending DNS'}
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Two-Column Grid: Test Email Dispatch & Notification Triggers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Test Email Dispatch Card */}
-              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-xs space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 font-['Manrope',sans-serif]">
-                    Dispatch Live Test Email
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Send an instantaneous test dispatch through Resend to verify delivery headers and inbox rendering.
-                  </p>
-                </div>
-
-                <form onSubmit={handleSendTestEmail} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Recipient Email Address
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={testEmailRecipient}
-                      onChange={(e) => setTestEmailRecipient(e.target.value)}
-                      placeholder="e.g. operations@yourcompany.com"
-                      className="w-full h-10 px-3 rounded-md border border-slate-300 bg-white text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EA1D2C] focus:border-transparent font-mono"
-                    />
-                  </div>
-
-                  {testEmailResult && (
-                    <div
-                      className={`p-3 rounded-md text-xs font-semibold ${
-                        testEmailResult.success
-                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                          : 'bg-red-50 text-red-800 border border-red-200'
-                      }`}
-                    >
-                      {testEmailResult.message}
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={sendingTestEmail}
-                    className="w-full h-10 rounded-md bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-bold uppercase tracking-wider transition-none cursor-pointer flex items-center justify-center gap-2 shadow-xs"
-                  >
-                    {sendingTestEmail ? (
-                      <>
-                        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <circle cx="12" cy="12" r="10" strokeWidth="4" className="opacity-25" />
-                          <path d="M4 12a8 8 0 0 1 8-8" strokeWidth="4" className="opacity-75" />
-                        </svg>
-                        <span>Transmitting to Resend...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Send Test Dispatch &rarr;</span>
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-
-              {/* Configured Triggers Card */}
-              <div className="bg-white rounded-lg p-6 border border-slate-200 shadow-xs space-y-4">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 font-['Manrope',sans-serif]">
-                    Active Transactional Email Triggers
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Automated email events wired into GoShipping business logic.
-                  </p>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                    <div>
-                      <strong className="text-slate-900 block font-semibold">1. Rate Quotation Inquiries</strong>
-                      <span className="text-slate-600 text-[11px]">Instant acknowledgment with quote number to client, and alert notice to <code className="text-[0.9em] font-mono">ops@goshipping.com.bd</code>.</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                    <div>
-                      <strong className="text-slate-900 block font-semibold">2. Order Confirmation &amp; Dispatch</strong>
-                      <span className="text-slate-600 text-[11px]">When Admin/Ops registers a shipment, customer receives waybill details with a 1-click live tracking link.</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                    <div>
-                      <strong className="text-slate-900 block font-semibold">3. Live Status Updates</strong>
-                      <span className="text-slate-600 text-[11px]">Whenever status changes (e.g. Arrived Dhaka Airport, Customs Clearance), customer gets updated in BST.</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                    <div>
-                      <strong className="text-slate-900 block font-semibold">4. User Account Onboarding</strong>
-                      <span className="text-slate-600 text-[11px]">Staff creation in Admin or user signup dispatches an enterprise welcome credential email.</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </span>
-                    <div>
-                      <strong className="text-slate-900 block font-semibold">5. Website Contact Form</strong>
-                      <span className="text-slate-600 text-[11px]">Inquiries from <code className="text-[0.9em] font-mono">/contact</code> route directly to operations with client reply-to.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -5600,9 +6484,398 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
             </div>
           </div>
         )}
+          </>
+        )}
       </main>
 
       {/* ========================================================= */}
+      {/* 01. MODAL: CONVERT QUOTE TO SHIPMENT (BUDGET & EDIT)      */}
+      {/* ========================================================= */}
+      {showConvertQuoteModal && selectedQuoteForConvert && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border border-slate-200 max-w-2xl w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto font-['Inter',sans-serif]">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-900 text-base font-['Manrope',sans-serif]">
+                    Convert Quote to Active Shipment
+                  </h3>
+                  <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-bold border border-slate-200">
+                    {selectedQuoteForConvert.quoteNumber}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Client: <strong className="text-slate-800">{selectedQuoteForConvert.guestName}</strong> ({selectedQuoteForConvert.guestEmail || 'No email'} · {selectedQuoteForConvert.guestPhone})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConvertQuoteModal(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-md cursor-pointer transition-none"
+              >
+                <svg className="w-5 h-5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Section 1: Negotiated Final Budget & Pricing */}
+            <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-amber-700 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v12M16 10H9.5a2.5 2.5 0 0 0 0 5H15a2.5 2.5 0 0 1 0 5H8"/>
+                  </svg>
+                  Agreed Negotiated Budget &amp; Price
+                </span>
+                <span className="text-[11px] text-amber-700 font-medium">Negotiate before creating shipment</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Negotiated Total Price / Freight Charge</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      value={convertNegotiatedPrice || ''}
+                      onChange={(e) => setConvertNegotiatedPrice(Number(e.target.value))}
+                      placeholder="e.g. 329400"
+                      className="w-full h-9 pl-8 pr-3 text-xs font-mono font-bold rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-[#EA1D2C]"
+                    />
+                    <span className="absolute left-2.5 top-2.5 text-xs text-slate-400 font-mono font-bold">
+                      {convertCurrency === 'BDT' ? '৳' : '$'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Currency</label>
+                  <select
+                    value={convertCurrency}
+                    onChange={(e) => setConvertCurrency(e.target.value)}
+                    className="w-full h-9 px-3 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-slate-800 focus:outline-none"
+                  >
+                    <option value="BDT">BDT (৳ Taka)</option>
+                    <option value="USD">USD ($ Dollar)</option>
+                    <option value="RMB">RMB (¥ Yuan)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-700 block">Negotiation Notes &amp; Commercial Terms</label>
+                <input
+                  type="text"
+                  value={convertPricingNotes}
+                  onChange={(e) => setConvertPricingNotes(e.target.value)}
+                  placeholder="e.g. Agreed 5% volume rebate on Guangzhou BAI export handling."
+                  className="w-full h-8 px-3 text-xs rounded border border-slate-300 bg-white text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Section 2: Route & Freight Mode */}
+            <div className="space-y-3">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">Consignment Route &amp; Mode</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Mode</label>
+                  <select
+                    value={convertMode}
+                    onChange={(e) => setConvertMode(e.target.value as any)}
+                    className="w-full h-8 px-2 rounded border border-slate-300 bg-white text-slate-800 font-bold"
+                  >
+                    <option value="air">BY AIR (Express)</option>
+                    <option value="sea">BY SEA (Ocean)</option>
+                    <option value="road">BY ROAD</option>
+                    <option value="hand_carry">HAND CARRY</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Service Level</label>
+                  <select
+                    value={convertServiceLevel}
+                    onChange={(e) => setConvertServiceLevel(e.target.value as any)}
+                    className="w-full h-8 px-2 rounded border border-slate-300 bg-white text-slate-800 font-medium"
+                  >
+                    <option value="standard">Standard</option>
+                    <option value="express">Express</option>
+                    <option value="priority">Priority</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Origin City</label>
+                  <input
+                    type="text"
+                    value={convertOriginCity}
+                    onChange={(e) => setConvertOriginCity(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Destination City</label>
+                  <input
+                    type="text"
+                    value={convertDestCity}
+                    onChange={(e) => setConvertDestCity(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 3: Cargo & Packaging Specifications */}
+            <div className="space-y-3">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">Cargo Specifications</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Cargo Description</label>
+                  <input
+                    type="text"
+                    value={convertCargoDescription}
+                    onChange={(e) => setConvertCargoDescription(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Product Title</label>
+                  <input
+                    type="text"
+                    value={convertProductName}
+                    onChange={(e) => setConvertProductName(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Total Weight (KG)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={convertTotalWeightKg || ''}
+                    onChange={(e) => setConvertTotalWeightKg(Number(e.target.value))}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Volume (CBM)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={convertTotalCbm || ''}
+                    onChange={(e) => setConvertTotalCbm(Number(e.target.value))}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Total Pieces / Units</label>
+                  <input
+                    type="number"
+                    value={convertQuantity || ''}
+                    onChange={(e) => setConvertQuantity(Number(e.target.value))}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Packaging</label>
+                  <select
+                    value={convertPackagingType}
+                    onChange={(e) => setConvertPackagingType(e.target.value)}
+                    className="w-full h-8 px-2 rounded border border-slate-300 bg-white text-slate-800"
+                  >
+                    <option value="carton">Export Carton</option>
+                    <option value="pallet">Wooden Pallet</option>
+                    <option value="air_uld">Air Freight ULD</option>
+                    <option value="40ft_hq">40ft HQ Container</option>
+                    <option value="20ft_container">20ft Container</option>
+                    <option value="drum">Steel Drum / Barrel</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Product Items Breakdown (Supports multiple products in 1 shipment) */}
+            <div className="space-y-2 border-t border-slate-200 pt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+                  Product Items in Consignment ({convertItems.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConvertItems((prev) => [
+                      ...prev,
+                      {
+                        description: '',
+                        itemCode: `#ITM-${1000 + prev.length + 1}`,
+                        quantity: 1,
+                        weightKg: 10,
+                        cbm: 0.05,
+                        packagingType: 'carton',
+                        categoryTag: 'Commercial'
+                      }
+                    ]);
+                  }}
+                  className="text-[11px] font-semibold text-[#EA1D2C] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>+ Add Another Product</span>
+                </button>
+              </div>
+
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {convertItems.map((it, idx) => (
+                  <div key={idx} className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/60 grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs items-center">
+                    <div className="sm:col-span-5">
+                      <input
+                        type="text"
+                        value={it.description}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setConvertItems((prev) => prev.map((item, i) => i === idx ? { ...item, description: val } : item));
+                        }}
+                        placeholder="Product description..."
+                        className="w-full h-7 px-2 rounded border border-slate-200 bg-white text-slate-800 text-xs"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <input
+                        type="number"
+                        value={it.quantity || ''}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setConvertItems((prev) => prev.map((item, i) => i === idx ? { ...item, quantity: val } : item));
+                        }}
+                        placeholder="Qty"
+                        className="w-full h-7 px-2 rounded border border-slate-200 bg-white text-slate-800 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={it.weightKg || ''}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setConvertItems((prev) => prev.map((item, i) => i === idx ? { ...item, weightKg: val } : item));
+                        }}
+                        placeholder="KG"
+                        className="w-full h-7 px-2 rounded border border-slate-200 bg-white text-slate-800 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <select
+                        value={it.packagingType}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setConvertItems((prev) => prev.map((item, i) => i === idx ? { ...item, packagingType: val } : item));
+                        }}
+                        className="w-full h-7 px-1.5 rounded border border-slate-200 bg-white text-slate-800 text-[11px]"
+                      >
+                        <option value="carton">Carton</option>
+                        <option value="pallet">Pallet</option>
+                        <option value="air_uld">ULD</option>
+                        <option value="40ft_hq">40HQ</option>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-1 text-right">
+                      {convertItems.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setConvertItems((prev) => prev.filter((_, i) => i !== idx))}
+                          className="text-slate-400 hover:text-red-600 p-1 cursor-pointer"
+                          title="Remove item"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 5: Delivery & Recipient */}
+            <div className="space-y-3 border-t border-slate-200 pt-3">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">Recipient &amp; Delivery in Bangladesh</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Recipient Name</label>
+                  <input
+                    type="text"
+                    value={convertRecipientName}
+                    onChange={(e) => setConvertRecipientName(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Recipient Phone</label>
+                  <input
+                    type="text"
+                    value={convertRecipientPhone}
+                    onChange={(e) => setConvertRecipientPhone(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-600 block mb-1">Delivery Address</label>
+                  <input
+                    type="text"
+                    value={convertRecipientAddress}
+                    onChange={(e) => setConvertRecipientAddress(e.target.value)}
+                    className="w-full h-8 px-2.5 rounded border border-slate-300 bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowConvertQuoteModal(false)}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                <button
+                  type="button"
+                  disabled={isConvertingQuote}
+                  onClick={() => handleSaveConvertQuote(false)}
+                  className="flex-1 sm:flex-none px-3.5 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-none cursor-pointer"
+                  title="Convert immediately using current quote info"
+                >
+                  Instant Convert (Default)
+                </button>
+                <button
+                  type="button"
+                  disabled={isConvertingQuote}
+                  onClick={() => handleSaveConvertQuote(true)}
+                  className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold transition-none shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  {isConvertingQuote ? (
+                    <span>Converting...</span>
+                  ) : (
+                    <>
+                      <span>Save &amp; Convert to Shipment</span>
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ========================================================= */}
       {/* 03. MODAL: CELEBRATION / TRACKING ORDER CREATED SUCCESS    */}
       {/* ========================================================= */}
@@ -6144,6 +7417,37 @@ export default function AdminOperationsIsland({ initialTab = 'overview' }: { ini
                 </div>
               </div>
             </div>
+
+            {/* Arrived Items Breakdown if available */}
+            {previewInvoice.items && previewInvoice.items.length > 0 && (
+              <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-2 text-xs">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                  <span className="font-bold text-slate-800 uppercase text-[10px] tracking-wide">
+                    Arrived Products Billed ({previewInvoice.items.length}):
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Warehouse Arrived &amp; Verified
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-200/60 font-sans">
+                  {previewInvoice.items.map((it: any, idx: number) => (
+                    <div key={idx} className="py-1.5 flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-slate-900">{it.description}</span>
+                        <span className="text-[10px] font-mono text-slate-500 ml-2">({it.itemCode || `#ITM-${idx + 1}`})</span>
+                      </div>
+                      <div className="font-mono text-slate-700 text-right text-xs">
+                        <span>{it.arrivedQuantity || it.quantity || 1} units</span>
+                        <span className="text-slate-400 mx-1">·</span>
+                        <span className="font-bold">{it.weightKg} KG</span>
+                        <span className="text-slate-400 mx-1">·</span>
+                        <span className="text-[#EA1D2C] font-bold">৳{(it.amountBDT || Math.round((it.weightKg || 1) * (it.ratePerKg || 750))).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Line items */}
             <div className="border border-slate-200 rounded-lg overflow-hidden text-xs">

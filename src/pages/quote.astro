@@ -38,19 +38,19 @@ const quoteSchema = {
     <script type="application/ld+json" set:html={JSON.stringify(quoteSchema)} />
   </Fragment>
 
-  <!-- Hero Header -->
-  <section class="bg-[#11181E] text-white py-16 lg:py-20 border-b border-slate-800">
+  <!-- Hero Header (Light Theme) -->
+  <section class="bg-gradient-to-b from-white via-slate-50/50 to-white text-slate-900 py-10 sm:py-14 lg:py-18 border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-2 text-xs font-mono text-[#EA1D2C] uppercase tracking-wider mb-3">
-        <a href="/" class="hover:underline text-slate-400">Home</a>
-        <span>/</span>
-        <span>Ship for Me</span>
+      <div class="flex items-center gap-2 text-xs font-mono text-[#EA1D2C] uppercase tracking-wider mb-2.5 sm:mb-3">
+        <a href="/" class="hover:underline text-slate-500">Home</a>
+        <span class="text-slate-300">/</span>
+        <span class="font-bold">Ship for Me</span>
       </div>
-      <div class="max-w-3xl space-y-3">
-        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight font-['Manrope',sans-serif] leading-tight">
+      <div class="max-w-3xl space-y-2 sm:space-y-3">
+        <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight font-['Manrope',sans-serif] leading-[1.12] text-[#11181E]">
           Ship for Me — China to Bangladesh Shipping
         </h1>
-        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+        <p class="text-slate-600 text-xs sm:text-sm lg:text-base leading-relaxed font-normal">
           Order directly from 1688, Taobao, Alibaba, or Chinese factories. Ship to our Guangzhou or Yiwu warehouse, and we handle receiving, customs clearance, and door-to-door delivery across Bangladesh.
         </p>
       </div>
@@ -58,20 +58,20 @@ const quoteSchema = {
   </section>
 
   <!-- Main Quote Calculator Island -->
-  <section class="py-12 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+  <section class="py-8 sm:py-12 lg:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-14 lg:space-y-16">
     <div id="quote-calculator">
       <QuoteCalculatorIsland client:load />
     </div>
 
     <!-- Rate Comparison Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+      <div class="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-3 sm:space-y-4 shadow-2xs">
         <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/AIR FREIGHT</span>
-        <h3 class="text-lg font-bold text-slate-900 font-['Manrope']">Air Shipment</h3>
-        <p class="text-xs text-slate-600 leading-relaxed">
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 font-['Manrope']">Air Shipment</h3>
+        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
           Best for standard commercial merchandise, inventory replenishment, electronics, and parcel freight.
         </p>
-        <div class="bg-slate-50 p-4 rounded-md border border-slate-200 space-y-2 text-xs">
+        <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2 text-xs">
           <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-500">Transit Duration</span>
             <span class="font-bold text-slate-900">7–14 Days</span>
@@ -87,20 +87,20 @@ const quoteSchema = {
         </div>
       </div>
 
-      <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-4">
+      <div class="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-3 sm:space-y-4 shadow-2xs">
         <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/OCEAN FREIGHT</span>
-        <h3 class="text-lg font-bold text-slate-900 font-['Manrope']">Sea Shipment</h3>
-        <p class="text-xs text-slate-600 leading-relaxed">
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 font-['Manrope']">Sea Shipment</h3>
+        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
           Best for large commercial volumes, raw materials, heavy cargo, and cost-effective bulk consignments.
         </p>
-        <div class="bg-slate-50 p-4 rounded-md border border-slate-200 space-y-2 text-xs">
+        <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2 text-xs">
           <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-500">Transit Duration</span>
             <span class="font-bold text-slate-900">30–45 Days</span>
           </div>
           <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-500">Billing Metric</span>
-            <span class="font-bold text-slate-900">Per CBM</span>
+            <span class="font-bold text-slate-900">(PER KG or PER CBM)</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Port Handling</span>
@@ -109,24 +109,24 @@ const quoteSchema = {
         </div>
       </div>
 
-      <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-4">
+      <div class="p-5 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-3 sm:space-y-4 shadow-2xs">
         <span class="text-xs font-mono font-bold text-[#EA1D2C] uppercase tracking-wider">/P2P TRANSFER</span>
-        <h3 class="text-lg font-bold text-slate-900 font-['Manrope']">P2P Transfer (Hand Carry)</h3>
-        <p class="text-xs text-slate-600 leading-relaxed">
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 font-['Manrope']">P2P Transfer (Hand Carry)</h3>
+        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
           Person-to-person cargo transfer through our agent network. Send and receive packages via our warehouses.
         </p>
-        <div class="bg-slate-50 p-4 rounded-md border border-slate-200 space-y-2 text-xs">
+        <div class="bg-slate-50 p-3.5 sm:p-4 rounded-lg border border-slate-200 space-y-2 text-xs">
           <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-500">Transit Duration</span>
             <span class="font-bold text-slate-900">24–48 Hours</span>
           </div>
           <div class="flex justify-between border-b border-slate-200 pb-2">
-            <span class="text-slate-500">Network & Storage</span>
-            <span class="font-bold text-slate-900">Agent Network · Warehouse Storage</span>
+            <span class="text-slate-500">Network &amp; Storage</span>
+            <span class="font-bold text-slate-900">Agent Network · Warehouse</span>
           </div>
           <div class="flex justify-between border-b border-slate-200 pb-2">
             <span class="text-slate-500">Handling</span>
-            <span class="font-bold text-slate-900">Easy Pickup · Secure Handling</span>
+            <span class="font-bold text-slate-900">Easy Pickup · Secure</span>
           </div>
           <div class="flex justify-between">
             <span class="text-slate-500">Status</span>

@@ -81,8 +81,8 @@ const trackingConfig = getTrackingConfig();
                   id="email"
                   type="email"
                   required
-                  value="admin@goshipping.com"
-                  placeholder="admin@goshipping.com"
+                  autocomplete="email"
+                  placeholder="name@company.com"
                   class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-sm text-slate-900 transition-colors duration-150 outline-none"
                 />
               </div>
@@ -91,13 +91,13 @@ const trackingConfig = getTrackingConfig();
               <div>
                 <div class="flex justify-between items-center mb-1.5">
                   <label for="password" class="block font-semibold text-slate-700">Password</label>
-                  <span class="text-[11px] text-slate-400">Default: password</span>
                 </div>
                 <input
                   id="password"
                   type="password"
                   required
-                  value="password"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
                   class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-sm text-slate-900 transition-colors duration-150 outline-none"
                 />
               </div>
@@ -108,16 +108,19 @@ const trackingConfig = getTrackingConfig();
                   <input
                     id="remember"
                     type="checkbox"
-                    checked
                     class="h-4 w-4 rounded border-slate-300 text-[#EA1D2C] focus:ring-[#EA1D2C] accent-[#EA1D2C] cursor-pointer"
                   />
                   <label for="remember" class="text-xs text-slate-600 cursor-pointer select-none">
                     Remember me
                   </label>
                 </div>
-                <span class="text-xs text-slate-400 hover:text-slate-600 cursor-pointer">
+                <button
+                  type="button"
+                  id="btn-forgot-password-trigger"
+                  class="text-xs text-slate-400 hover:text-[#EA1D2C] hover:underline cursor-pointer transition-colors duration-150"
+                >
                   Forgot password?
-                </span>
+                </button>
               </div>
 
               <!-- Brand Colored Primary Action Button -->
@@ -128,51 +131,21 @@ const trackingConfig = getTrackingConfig();
               >
                 Sign In to Portal →
               </button>
-            </form>
 
-            <!-- Quick Demo One-Click Role Switcher -->
-            <div class="pt-4 border-t border-slate-100 space-y-2">
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Instant Demo Access (Click to Fill & Login):
-              </span>
-              <div class="grid grid-cols-2 gap-2 text-[11px]">
-                <button
-                  type="button"
-                  id="btn-admin"
-                  class="p-2 text-left rounded-md border border-slate-200 bg-[#F9FBFC] hover:border-[#EA1D2C] hover:bg-[#EA1D2C]/5 transition-colors duration-150 cursor-pointer"
-                >
-                  <strong class="block text-slate-900 text-xs">Super Admin</strong>
-                  <span class="text-slate-500 text-[10px]">Operations Director</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-customer"
-                  class="p-2 text-left rounded-md border border-slate-200 bg-[#F9FBFC] hover:border-[#EA1D2C] hover:bg-[#EA1D2C]/5 transition-colors duration-150 cursor-pointer"
-                >
-                  <strong class="block text-slate-900 text-xs">Customer Client</strong>
-                  <span class="text-slate-500 text-[10px]">Apex Textiles Ltd</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-ops"
-                  class="p-2 text-left rounded-md border border-slate-200 bg-[#F9FBFC] hover:border-[#EA1D2C] hover:bg-[#EA1D2C]/5 transition-colors duration-150 cursor-pointer"
-                >
-                  <strong class="block text-slate-900 text-xs">Ops Manager</strong>
-                  <span class="text-slate-500 text-[10px]">Kamal Hossain</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-sales"
-                  class="p-2 text-left rounded-md border border-slate-200 bg-[#F9FBFC] hover:border-[#EA1D2C] hover:bg-[#EA1D2C]/5 transition-colors duration-150 cursor-pointer"
-                >
-                  <strong class="block text-slate-900 text-xs">Sales Team</strong>
-                  <span class="text-slate-500 text-[10px]">Nafis Chowdhury</span>
-                </button>
+              <!-- Customer Registration Link -->
+              <div class="pt-3 text-center border-t border-slate-100">
+                <p class="text-xs text-slate-500">
+                  Don't have a shipping account?{' '}
+                  <a
+                    href={`/register${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+                    class="font-bold text-[#EA1D2C] hover:underline"
+                  >
+                    Create Account / নিবন্ধন করুন →
+                  </a>
+                </p>
               </div>
-            </div>
+            </form>
           </div>
-
-          {/* Public self-registration is disabled; Sign In is the only default option */}
         </div>
 
         <!-- Right Side: Platform Visual Showcase -->
@@ -384,6 +357,146 @@ const trackingConfig = getTrackingConfig();
       </div>
     </main>
 
+    <!-- Forgot Password Modal Dialog -->
+    <div
+      id="forgot-modal"
+      class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="forgot-modal-title"
+    >
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 sm:p-7 relative">
+        <!-- Close button -->
+        <button
+          type="button"
+          id="btn-close-forgot-modal"
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+          aria-label="Close"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Header -->
+        <div class="mb-5">
+          <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#EA1D2C] mb-3">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <h3 id="forgot-modal-title" class="text-lg font-bold text-slate-900 font-['Manrope']">
+            Reset Account Password
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Enter your registered official email to receive a secure 6-digit verification code.
+          </p>
+        </div>
+
+        <!-- Notification Message inside Modal -->
+        <div id="forgot-modal-alert" class="hidden mb-4 p-3 rounded-md text-xs font-medium"></div>
+
+        <!-- STEP 1: Request OTP Form -->
+        <form id="forgot-step1-form" class="space-y-4 text-xs">
+          <div>
+            <label for="forgot-email" class="block font-semibold text-slate-700 mb-1.5">Registered Email</label>
+            <input
+              id="forgot-email"
+              type="email"
+              required
+              placeholder="name@company.com"
+              class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-sm text-slate-900 transition-colors outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="btn-send-otp"
+            class="w-full h-11 rounded-md bg-[#EA1D2C] text-white font-semibold text-sm hover:bg-[#D41523] active:bg-[#B7101C] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+          >
+            Send Verification Code →
+          </button>
+        </form>
+
+        <!-- STEP 2: Verify OTP and Set New Password Form (Initially hidden) -->
+        <form id="forgot-step2-form" class="space-y-4 text-xs hidden">
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label for="reset-code" class="block font-semibold text-slate-700">6-Digit Verification Code</label>
+              <span class="text-[11px] text-slate-500 truncate max-w-[180px]" id="reset-target-email"></span>
+            </div>
+            <input
+              id="reset-code"
+              type="text"
+              required
+              maxlength="6"
+              placeholder="123456"
+              class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-center font-mono font-bold tracking-widest text-lg text-slate-900 transition-colors outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="reset-new-password" class="block font-semibold text-slate-700 mb-1.5">New Password</label>
+            <input
+              id="reset-new-password"
+              type="password"
+              required
+              minlength="6"
+              placeholder="Minimum 6 characters"
+              class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-sm text-slate-900 transition-colors outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="reset-confirm-password" class="block font-semibold text-slate-700 mb-1.5">Confirm New Password</label>
+            <input
+              id="reset-confirm-password"
+              type="password"
+              required
+              minlength="6"
+              placeholder="Re-enter new password"
+              class="w-full h-11 px-3.5 rounded-md bg-[#F4F6F9] border border-transparent hover:border-slate-300 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/15 text-sm text-slate-900 transition-colors outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="btn-confirm-reset"
+            class="w-full h-11 rounded-md bg-[#EA1D2C] text-white font-semibold text-sm hover:bg-[#D41523] active:bg-[#B7101C] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+          >
+            Update Password & Sign In →
+          </button>
+
+          <div class="text-center pt-1">
+            <button
+              type="button"
+              id="btn-back-to-step1"
+              class="text-xs text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+            >
+              ← Change email address
+            </button>
+          </div>
+        </form>
+
+        <!-- WhatsApp Emergency Assistance -->
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>Need immediate assistance?</span>
+          <a
+            id="forgot-whatsapp-link"
+            href="https://wa.me/8801797252627?text=Hello%20GoShipping%2C%20I%20need%20help%20recovering%20my%20account%20password."
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 font-semibold text-emerald-600 hover:text-emerald-700 hover:underline"
+          >
+            <span>WhatsApp Desk</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.311.045-.698.056-2.18-.553-1.894-.778-3.09-2.73-3.184-2.855-.094-.125-.765-1.018-.765-1.942 0-.923.483-1.378.654-1.564.172-.187.375-.234.5-.234.126 0 .25.002.36.008.115.006.27-.043.422.323.157.38.536 1.309.584 1.405.047.096.079.208.016.333-.063.125-.094.203-.188.312-.093.11-.197.246-.281.33-.094.094-.192.196-.083.383.11.188.487.805 1.045 1.303.719.641 1.326.84 1.514.934.188.093.297.078.406-.047.11-.125.469-.546.594-.734.125-.187.25-.156.422-.094.172.063 1.094.516 1.282.609.188.094.313.141.36.219.046.078.046.453-.098.858z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
     <script define:vars={{ redirectUrl }}>
       const form = document.getElementById('login-form');
       const errorBox = document.getElementById('error-box');
@@ -446,28 +559,171 @@ const trackingConfig = getTrackingConfig();
         executeLogin(email, password);
       });
 
-      document.getElementById('btn-customer')?.addEventListener('click', () => {
-        document.getElementById('email').value = 'client@apextextiles.com';
-        document.getElementById('password').value = 'password';
-        executeLogin('client@apextextiles.com', 'password');
+      // Forgot Password Modal Controller
+      const forgotModal = document.getElementById('forgot-modal');
+      const forgotTrigger = document.getElementById('btn-forgot-password-trigger');
+      const forgotClose = document.getElementById('btn-close-forgot-modal');
+      const forgotAlert = document.getElementById('forgot-modal-alert');
+      const step1Form = document.getElementById('forgot-step1-form');
+      const step2Form = document.getElementById('forgot-step2-form');
+      const forgotEmail = document.getElementById('forgot-email');
+      const resetCode = document.getElementById('reset-code');
+      const resetNewPassword = document.getElementById('reset-new-password');
+      const resetConfirmPassword = document.getElementById('reset-confirm-password');
+      const resetTargetEmail = document.getElementById('reset-target-email');
+      const btnSendOtp = document.getElementById('btn-send-otp');
+      const btnConfirmReset = document.getElementById('btn-confirm-reset');
+      const btnBackStep1 = document.getElementById('btn-back-to-step1');
+      const whatsappLink = document.getElementById('forgot-whatsapp-link');
+
+      function showForgotAlert(msg, isSuccess = false) {
+        if (!forgotAlert) return;
+        forgotAlert.textContent = msg;
+        forgotAlert.className = isSuccess
+          ? 'mb-4 p-3 rounded-md text-xs font-medium bg-emerald-50 border border-emerald-200 text-emerald-800'
+          : 'mb-4 p-3 rounded-md text-xs font-medium bg-red-50 border border-red-200 text-red-700';
+        forgotAlert.classList.remove('hidden');
+      }
+
+      function hideForgotAlert() {
+        if (forgotAlert) forgotAlert.classList.add('hidden');
+      }
+
+      function openForgotModal() {
+        hideForgotAlert();
+        const currentEmail = document.getElementById('email')?.value?.trim();
+        if (currentEmail && forgotEmail) {
+          forgotEmail.value = currentEmail;
+          if (whatsappLink) {
+            whatsappLink.href = `https://wa.me/8801797252627?text=Hello%20GoShipping%2C%20I%20need%20help%20recovering%20password%20for%20my%20account%20(${encodeURIComponent(currentEmail)}).`;
+          }
+        }
+        step1Form?.classList.remove('hidden');
+        step2Form?.classList.add('hidden');
+        forgotModal?.classList.remove('hidden');
+        setTimeout(() => forgotEmail?.focus(), 50);
+      }
+
+      function closeForgotModal() {
+        forgotModal?.classList.add('hidden');
+      }
+
+      forgotTrigger?.addEventListener('click', openForgotModal);
+      forgotClose?.addEventListener('click', closeForgotModal);
+
+      // Close on backdrop click
+      forgotModal?.addEventListener('click', (e) => {
+        if (e.target === forgotModal) closeForgotModal();
       });
 
-      document.getElementById('btn-admin')?.addEventListener('click', () => {
-        document.getElementById('email').value = 'admin@goshipping.com';
-        document.getElementById('password').value = 'password';
-        executeLogin('admin@goshipping.com', 'password');
+      // Close on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && forgotModal && !forgotModal.classList.contains('hidden')) {
+          closeForgotModal();
+        }
       });
 
-      document.getElementById('btn-ops')?.addEventListener('click', () => {
-        document.getElementById('email').value = 'ops@goshipping.com';
-        document.getElementById('password').value = 'password';
-        executeLogin('ops@goshipping.com', 'password');
+      btnBackStep1?.addEventListener('click', () => {
+        hideForgotAlert();
+        step2Form?.classList.add('hidden');
+        step1Form?.classList.remove('hidden');
       });
 
-      document.getElementById('btn-sales')?.addEventListener('click', () => {
-        document.getElementById('email').value = 'sales@goshipping.com';
-        document.getElementById('password').value = 'password';
-        executeLogin('sales@goshipping.com', 'password');
+      // Step 1: Submit email to get OTP
+      step1Form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideForgotAlert();
+        const email = forgotEmail?.value?.trim();
+        if (!email) return;
+
+        if (btnSendOtp) {
+          btnSendOtp.disabled = true;
+          btnSendOtp.textContent = 'Sending Verification Code...';
+        }
+
+        try {
+          const res = await fetch('/api/auth/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to dispatch verification code');
+          }
+
+          if (resetTargetEmail) resetTargetEmail.textContent = email;
+          step1Form?.classList.add('hidden');
+          step2Form?.classList.remove('hidden');
+          showForgotAlert(data.message || 'Verification code sent! Please check your email.', true);
+          setTimeout(() => resetCode?.focus(), 50);
+        } catch (err) {
+          showForgotAlert(err.message || 'Unable to process request.');
+        } finally {
+          if (btnSendOtp) {
+            btnSendOtp.disabled = false;
+            btnSendOtp.textContent = 'Send Verification Code →';
+          }
+        }
+      });
+
+      // Step 2: Submit OTP and new password
+      step2Form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideForgotAlert();
+
+        const email = forgotEmail?.value?.trim();
+        const code = resetCode?.value?.trim();
+        const newPassword = resetNewPassword?.value;
+        const confirmPassword = resetConfirmPassword?.value;
+
+        if (newPassword !== confirmPassword) {
+          showForgotAlert('Passwords do not match. Please ensure both passwords are identical.');
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          showForgotAlert('Password must be at least 6 characters long.');
+          return;
+        }
+
+        if (btnConfirmReset) {
+          btnConfirmReset.disabled = true;
+          btnConfirmReset.textContent = 'Updating Password...';
+        }
+
+        try {
+          const res = await fetch('/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code, newPassword })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to reset password');
+          }
+
+          showForgotAlert('Password successfully reset! Signing you in...', true);
+
+          // Populate main login form and auto sign in
+          const emailInput = document.getElementById('email');
+          const passwordInput = document.getElementById('password');
+          if (emailInput) emailInput.value = email;
+          if (passwordInput) passwordInput.value = newPassword;
+
+          setTimeout(() => {
+            closeForgotModal();
+            executeLogin(email, newPassword);
+          }, 1000);
+        } catch (err) {
+          showForgotAlert(err.message || 'Verification code is invalid or expired.');
+          if (btnConfirmReset) {
+            btnConfirmReset.disabled = false;
+            btnConfirmReset.textContent = 'Update Password & Sign In →';
+          }
+        }
       });
     </script>
   </body>

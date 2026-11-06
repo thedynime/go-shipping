@@ -27,12 +27,6 @@ const FAQ_ITEMS: FaqItem[] = [
     answer: 'Every Ship for Me booking includes end-to-end clearing and forwarding (C&F). Our licensed customs brokerage team manages HS code classification, duty pre-assessment, port documentation, and statutory customs clearance at Dhaka HSIA airport and Chittagong seaport. You receive an itemized commercial invoice with zero hidden port demurrage fees.'
   },
   {
-    id: 'air-vs-sea-billing',
-    category: 'Rates & Calculation',
-    question: 'How are freight costs calculated for Air vs Sea shipments?',
-    answer: 'Air Freight is calculated on chargeable weight (the higher of gross scale weight or volumetric weight, where 1 CBM equals 167 KG). Transit time is 7 to 14 days. Sea Freight is billed per cubic meter (CBM) with a 0.5 CBM minimum, suitable for heavy machinery and bulk commercial containers with 30 to 45 days transit.'
-  },
-  {
     id: 'shipping-mark-procedure',
     category: 'Shipment Procedure',
     question: 'How do I send goods from 1688, Taobao, or a Chinese supplier?',

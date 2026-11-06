@@ -336,16 +336,8 @@ export default function LiveTrackingIsland({
     };
   }, [trackingData?.trackingNumber]);
 
-  // 5. Adaptive Polling (12s active, paused when tab hidden)
-  useEffect(() => {
-    if (!isTabActive || !trackingData) return;
-
-    const interval = setInterval(() => {
-      fetchTracking(trackingData.trackingNumber, true);
-    }, pollIntervalMs);
-
-    return () => clearInterval(interval);
-  }, [isTabActive, trackingData?.trackingNumber, pollIntervalMs]);
+  // 5. Manual refresh or initial query load (Auto-polling disabled to prevent unwanted auto-loading)
+  // Tracking refreshes on demand when query/status changes
 
   // 6. Listen for custom window event 'select-tracking-code'
   useEffect(() => {
@@ -484,30 +476,14 @@ export default function LiveTrackingIsland({
       {/* ========================================================================= */}
       {/* 01. SEARCH & CONSIGNMENT SWITCHER BAR (Unified Tracking & History)        */}
       {/* ========================================================================= */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
         {/* Unified Top Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-[#EA1D2C]"></div>
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#EA1D2C] animate-pulse"></span>
+            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
               Cargo & Consignment Tracker
             </span>
-          </div>
-
-          {/* Sync indicator */}
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-mono">
-              {realtimeProvider === 'pusher' ? 'Live Push Sync' : 'Adaptive Polling (12s)'}
-            </span>
-            {lastRefreshed && (
-              <span className="text-slate-400 font-mono hidden md:inline">
-                · {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </span>
-            )}
           </div>
         </div>
 
@@ -515,7 +491,7 @@ export default function LiveTrackingIsland({
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1">
             <svg
-              className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 stroke-[2]"
+              className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 stroke-[2]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -528,7 +504,7 @@ export default function LiveTrackingIsland({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Enter Tracking Code, AWB, B/L, Account Email, or Phone Number..."
-              className="w-full h-10 pl-10 pr-4 text-xs font-mono font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:bg-white focus:border-[#EA1D2C] focus:ring-1 focus:ring-[#EA1D2C]/20 transition-none outline-none"
+              className="w-full h-11 pl-10 pr-4 text-xs font-mono font-medium rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#EA1D2C] focus:ring-2 focus:ring-[#EA1D2C]/20 transition-none outline-none"
             />
           </div>
 
@@ -536,7 +512,7 @@ export default function LiveTrackingIsland({
             <button
               type="submit"
               disabled={loading}
-              className="h-10 px-5 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-semibold flex items-center justify-center gap-2 transition-none cursor-pointer disabled:opacity-50 shadow-xs"
+              className="h-11 px-6 rounded-lg bg-[#EA1D2C] hover:bg-[#D41523] text-white text-xs font-bold flex items-center justify-center gap-2 transition-none cursor-pointer disabled:opacity-50 shadow-xs"
             >
               {loading ? (
                 <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -551,25 +527,12 @@ export default function LiveTrackingIsland({
               <span>Track</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => trackingData && fetchTracking(trackingData.trackingNumber, false)}
-              disabled={loading || !trackingData}
-              title="Refresh tracking data from authoritative server"
-              className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium flex items-center gap-1.5 transition-none cursor-pointer disabled:opacity-40"
-            >
-              <svg className={`w-3.5 h-3.5 stroke-[2] ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-              </svg>
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-
             {trackingData && (
               <button
                 type="button"
                 onClick={handleCopyTrackingLink}
                 title="Copy shareable direct tracking link"
-                className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium flex items-center gap-1.5 transition-none cursor-pointer"
+                className="h-11 px-3.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium flex items-center gap-1.5 transition-none cursor-pointer"
               >
                 <svg className="w-3.5 h-3.5 stroke-[2] text-[#EA1D2C]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -582,15 +545,15 @@ export default function LiveTrackingIsland({
         </form>
 
         {/* Security & Multi-Method Guidance Strip */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs border-t border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-[11px]">
+        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs border-t border-slate-100">
+          <div className="flex items-center gap-2 text-slate-600 text-[11px]">
             <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             <span>Live telemetry, customs clearance, and consignment history.</span>
           </div>
 
-          <span className="text-[11px] text-slate-400 font-medium">
+          <span className="text-[11px] text-slate-500 font-medium">
             No login or password required for public tracking.
           </span>
         </div>
@@ -966,8 +929,8 @@ export default function LiveTrackingIsland({
       {/* 02. EMPTY STATE (WAITING FOR USER'S TRACKING CODE)                        */}
       {/* ========================================================================= */}
       {!trackingData && !loading && !error && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-12 text-center shadow-2xs space-y-4">
-          <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-950/40 text-[#EA1D2C] mx-auto flex items-center justify-center ring-8 ring-red-50/50 dark:ring-red-950/20">
+        <div className="bg-white rounded-xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs space-y-4">
+          <div className="w-14 h-14 rounded-full bg-red-50 text-[#EA1D2C] mx-auto flex items-center justify-center ring-8 ring-red-50/60">
             <svg className="w-7 h-7 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
               <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
@@ -975,25 +938,25 @@ export default function LiveTrackingIsland({
             </svg>
           </div>
           <div className="max-w-md mx-auto space-y-1.5">
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-['Manrope',sans-serif]">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 font-['Manrope',sans-serif]">
               Track Your Shipment
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-600 leading-relaxed">
               Enter your Tracking Code, account Email, or Phone Number in the search box above to view real-time cargo status and location updates.
             </p>
           </div>
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700">
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] text-slate-600">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">Tracking Code / AWB / B/L</span>
+              <span className="font-semibold text-slate-800">Tracking Code / AWB / B/L</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">Account Email (Consignment History)</span>
+              <span className="font-semibold text-slate-800">Account Email (Consignment History)</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span className="font-medium text-slate-700 dark:text-slate-300">Phone Number (Consignee Deliveries)</span>
+              <span className="font-semibold text-slate-800">Phone Number (Consignee Deliveries)</span>
             </div>
           </div>
         </div>

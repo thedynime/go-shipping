@@ -2,7 +2,12 @@
 import PublicLayout from '../layouts/PublicLayout.astro';
 import LiveTrackingIsland from '../components/marketing/LiveTrackingIsland';
 import QuoteCalculatorIsland from '../components/marketing/QuoteCalculatorIsland';
-import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScrollShowcase';
+import HomeHeroBannerIsland from '../components/marketing/HomeHeroBannerIsland';
+import { BannerService } from '../server/services/banner.service';
+import { TestimonialService } from '../server/services/testimonial.service';
+
+const dynamicBanners = await BannerService.getBanners(true);
+const dynamicTestimonials = await TestimonialService.getTestimonials(true);
 ---
 
 <PublicLayout
@@ -13,265 +18,82 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   image="/og/og-home.png"
 >
   <!-- ========================================================================= -->
-  <!-- 1. HERO SECTION: China-to-Bangladesh Logistics Editorial                  -->
+  <!-- 1. DYNAMIC HERO BANNER SYSTEM (China Sourcing & Cargo Operations)         -->
   <!-- ========================================================================= -->
-  <section class="relative bg-white pt-10 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      {/* Route Badge & Status Indicator */}
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-100 border border-slate-200 mb-6">
-        <span class="w-2 h-2 rounded-full bg-[#EA1D2C] motion-safe:animate-pulse motion-reduce:animate-none"></span>
-        <span class="text-xs font-bold text-slate-800 tracking-tight">
-          Trusted China → Bangladesh Logistics
-        </span>
-      </div>
-
-      {/* Two-Column Editorial Hero Grid */}
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10 lg:mb-14">
-        
-        {/* Left: Large Editorial Headline */}
-        <div class="lg:col-span-7">
-          <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-[#11181E] tracking-tight leading-[1.04]">
-            China to Bangladesh &amp; Malaysia,<br />
-            <span class="text-[#EA1D2C]">Delivered with Confidence.</span>
-          </h1>
-        </div>
-
-        {/* Right: Route Context & Actions */}
-        <div class="lg:col-span-5 lg:pl-4 space-y-6">
-          <p class="text-base sm:text-lg text-slate-700 leading-relaxed font-normal">
-            Reliable Air &amp; Sea Cargo Solutions with Door-to-Door Delivery connecting China directly to Bangladesh and Malaysia.
-          </p>
-
-          <div class="flex flex-wrap items-center gap-3">
-            <a
-              href="/quote"
-              class="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#11181E] text-white text-xs font-bold hover:bg-slate-800 active:bg-slate-900 transition-colors duration-150 border border-[#11181E]"
-            >
-              Ship for Me
-            </a>
-            <a
-              href="/tracking"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-md border border-slate-300 bg-white text-slate-900 text-xs font-bold hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150 shadow-xs"
-            >
-              <svg class="w-3.5 h-3.5 text-[#EA1D2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>Track Shipment</span>
-            </a>
-          </div>
-
-          {/* Authentic Transit Route Details & Trust Signals */}
-          <div class="pt-3 border-t border-slate-200 space-y-2">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-slate-800">
-              <span class="inline-flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
-                Safe Cargo
-              </span>
-              <span class="inline-flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
-                Reliable Delivery
-              </span>
-              <span class="inline-flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C]"></span>
-                Dedicated Support
-              </span>
-            </div>
-            <div class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-slate-500">
-              <div>
-                <span class="font-bold text-slate-900">Air Shipment:</span> 7–14 Days
-              </div>
-              <div>
-                <span class="font-bold text-slate-900">Sea Shipment:</span> 35–45 Days
-              </div>
-            </div>
-            <p class="text-[11px] text-slate-400 italic">
-              Delivery times are approximate service estimates and are not guaranteed.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Visual Composition: Architectural Shipping Container & Live Tracking Bar */}
-      <div class="relative rounded-xl overflow-hidden bg-[#11181E] border border-slate-300">
-        <div class="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden">
-          <img
-            src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=2200&q=85"
-            alt="GoShipping Stacked Intermodal Shipping Containers"
-            class="w-full h-full object-cover object-center filter contrast-105"
-            loading="eager"
-          />
-          <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/60"></div>
-
-          {/* Industrial Stencil Markings */}
-          <div class="absolute top-6 left-6 sm:top-10 sm:left-12 space-y-1 text-white/90">
-            <span class="text-xs text-slate-300 block">
-              Corridor Hub No. GZ-BD-2026-081
-            </span>
-            <div class="text-3xl sm:text-5xl font-black tracking-tight text-white">
-              GoShipping Freight
-            </div>
-            <span class="text-xs text-slate-300 block">
-              Guangzhou CFS, Shenzhen Port, Dhaka HSIA, Chittagong Port
-            </span>
-          </div>
-
-          {/* Technical Specs Overlay */}
-          <div class="absolute bottom-6 left-6 sm:bottom-10 sm:left-12 text-white/90 text-xs flex items-center gap-3">
-            <div class="border border-white/60 bg-black/60 rounded px-2.5 py-1 text-[11px] font-bold">
-              MAX GROSS 32,500 KG
-            </div>
-            <span class="hidden md:inline text-white/70">
-              China Warehouse Support · Customs Clearance · Door-to-Door
-            </span>
-          </div>
-
-          {/* Prominent Hero Fast-Track Input Card */}
-          <div class="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 max-w-sm w-full hidden sm:block">
-            <div class="p-4 sm:p-5 rounded-lg bg-white border border-slate-200 space-y-2.5 shadow-lg">
-              <div class="flex items-center justify-between text-xs font-bold text-slate-900">
-                <span class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-[#EA1D2C] animate-pulse"></span>
-                  <span>Track Your Shipment</span>
-                </span>
-                <a href="/tracking" class="text-[#EA1D2C] text-[11px] font-semibold hover:underline flex items-center gap-0.5">
-                  <span>Open Portal</span>
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </a>
-              </div>
-              <form action="/tracking" method="GET" class="flex gap-2">
-                <input
-                  type="text"
-                  name="code"
-                  placeholder="Tracking Code, Email, or Phone..."
-                  class="flex-1 h-10 px-3.5 rounded-md border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#EA1D2C]"
-                  required
-                />
-                <button
-                  type="submit"
-                  class="h-10 px-4 rounded-md bg-[#EA1D2C] text-white font-bold text-xs hover:bg-[#D01422] active:bg-[#B7101C] transition-colors duration-150 cursor-pointer shrink-0"
-                >
-                  Track
-                </button>
-              </form>
-              <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-                <span>Search by Tracking Code, Email, or Phone</span>
-                <a href="/tracking" class="text-slate-700 font-semibold hover:text-[#EA1D2C] transition-colors inline-flex items-center gap-1">
-                  <span>Tracking Page</span>
-                  <span>→</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4 Core Value Highlights from GoShipping */}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-        <div class="p-5 rounded-lg bg-slate-50 border border-slate-200">
-          <span class="text-xs font-black text-[#EA1D2C] font-mono">01</span>
-          <h3 class="text-sm font-extrabold text-slate-900 mt-1">Safe & Secure</h3>
-          <p class="text-xs text-slate-600 mt-1 leading-relaxed">Your cargo is handled with care from warehouse to delivery.</p>
-        </div>
-        <div class="p-5 rounded-lg bg-slate-50 border border-slate-200">
-          <span class="text-xs font-black text-[#EA1D2C] font-mono">02</span>
-          <h3 class="text-sm font-extrabold text-slate-900 mt-1">Door-to-Door</h3>
-          <p class="text-xs text-slate-600 mt-1 leading-relaxed">Complete shipping support from China to Bangladesh.</p>
-        </div>
-        <div class="p-5 rounded-lg bg-slate-50 border border-slate-200">
-          <span class="text-xs font-black text-[#EA1D2C] font-mono">03</span>
-          <h3 class="text-sm font-extrabold text-slate-900 mt-1">Fast Air Shipment</h3>
-          <p class="text-xs text-slate-600 mt-1 leading-relaxed">Reliable air freight for time-sensitive shipments.</p>
-        </div>
-        <div class="p-5 rounded-lg bg-slate-50 border border-slate-200">
-          <span class="text-xs font-black text-[#EA1D2C] font-mono">04</span>
-          <h3 class="text-sm font-extrabold text-slate-900 mt-1">Sea Shipment</h3>
-          <p class="text-xs text-slate-600 mt-1 leading-relaxed">Cost-effective sea freight for larger shipments.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================================= -->
-  <!-- 2. SIGNATURE PINNED LOGISTICS SHOWCASE (Machinery & Highway Animation)    -->
-  <!-- ========================================================================= -->
-  <IndustrialScrollShowcase client:visible />
+  <HomeHeroBannerIsland client:load initialBanners={dynamicBanners} />
 
   <!-- ========================================================================= -->
   <!-- 3. HOW IT WORKS: Shipping Made Simple                                     -->
   <!-- ========================================================================= -->
-  <section id="how-it-works" class="py-20 lg:py-28 bg-white border-b border-slate-200">
+  <section id="how-it-works" class="py-10 sm:py-16 lg:py-20 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       {/* Category Heading */}
-      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-3 font-mono">
+      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-2 sm:mb-3 font-mono">
         /HOW IT WORKS
       </span>
 
       {/* Two-Column Process Header */}
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-8 sm:mb-12 lg:mb-14">
         <div class="lg:col-span-7">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             Shipping Made Simple.<br />
             <span class="text-slate-400 font-medium">Three clear steps from China to your doorstep.</span>
           </h2>
         </div>
         <div class="lg:col-span-5 lg:pl-6">
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed font-normal">
             No intermediaries and no blind spots. We manage the entire logistics journey from warehouse receiving in China to verified delivery across Bangladesh.
           </p>
         </div>
       </div>
 
       {/* 3 Authentic Process Cards */}
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
         {/* Step 1 */}
-        <div class="p-8 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <div class="space-y-3">
-            <span class="text-3xl font-black text-[#EA1D2C] font-mono">01</span>
-            <h3 class="text-xl font-extrabold text-slate-900">
+        <div class="p-5 sm:p-6 lg:p-8 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4 sm:space-y-6">
+          <div class="space-y-2.5 sm:space-y-3">
+            <span class="text-2xl sm:text-3xl font-black text-[#EA1D2C] font-mono">01</span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">
               Send Your Product Details
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
               Share your product and shipment information with our team.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
+          <div class="pt-3 sm:pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
             China Warehouse Receiving Support
           </div>
         </div>
 
         {/* Step 2 */}
-        <div class="p-8 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <div class="space-y-3">
-            <span class="text-3xl font-black text-[#EA1D2C] font-mono">02</span>
-            <h3 class="text-xl font-extrabold text-slate-900">
+        <div class="p-5 sm:p-6 lg:p-8 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4 sm:space-y-6">
+          <div class="space-y-2.5 sm:space-y-3">
+            <span class="text-2xl sm:text-3xl font-black text-[#EA1D2C] font-mono">02</span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">
               Get Your Shipping Quote
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
               We calculate the shipping cost and provide the available options.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
+          <div class="pt-3 sm:pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
             Transparent Air & Sea Freight Rates
           </div>
         </div>
 
         {/* Step 3 */}
-        <div class="p-8 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <div class="space-y-3">
-            <span class="text-3xl font-black text-[#EA1D2C] font-mono">03</span>
-            <h3 class="text-xl font-extrabold text-slate-900">
+        <div class="p-5 sm:p-6 lg:p-8 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4 sm:space-y-6">
+          <div class="space-y-2.5 sm:space-y-3">
+            <span class="text-2xl sm:text-3xl font-black text-[#EA1D2C] font-mono">03</span>
+            <h3 class="text-lg sm:text-xl font-extrabold text-slate-900">
               Receive Your Shipment
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
               We handle the logistics and deliver your cargo to Bangladesh.
             </p>
           </div>
-          <div class="pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
+          <div class="pt-3 sm:pt-4 border-t border-slate-200 text-xs text-slate-500 font-mono">
             Door-to-Door Delivery Across 64 Districts
           </div>
         </div>
@@ -282,39 +104,39 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- ABOUT GO SHIPPING & SHIPPING METHOD SELECTION                             -->
   <!-- ========================================================================= -->
-  <section id="about" class="py-20 lg:py-28 bg-[#F8FAFC] border-b border-slate-200">
+  <section id="about" class="py-10 sm:py-16 lg:py-20 bg-[#F8FAFC] border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
         {/* Left Column: About Go Shipping */}
-        <div class="lg:col-span-6 space-y-6">
+        <div class="lg:col-span-6 space-y-4 sm:space-y-6">
           <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block font-mono">
             China → BD End-to-end support
           </span>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             About Go Shipping<br />
             <span class="text-slate-400 font-medium">Your Trusted China to Bangladesh Shipping Partner</span>
           </h2>
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed font-normal">
             We help online sellers, e-commerce businesses and importers move products from China to Bangladesh with reliable shipping and door-to-door logistics support.
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-bold text-slate-800">
-            <div class="flex items-center gap-2.5 p-3 rounded-md bg-white border border-slate-200">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-2 text-xs font-bold text-slate-800">
+            <div class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-white border border-slate-200">
               <span class="w-2 h-2 rounded-full bg-[#EA1D2C]"></span>
               China Warehouse Support
             </div>
-            <div class="flex items-center gap-2.5 p-3 rounded-md bg-white border border-slate-200">
+            <div class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-white border border-slate-200">
               <span class="w-2 h-2 rounded-full bg-[#EA1D2C]"></span>
               Safe & Secure Cargo Handling
             </div>
-            <div class="flex items-center gap-2.5 p-3 rounded-md bg-white border border-slate-200">
+            <div class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-white border border-slate-200">
               <span class="w-2 h-2 rounded-full bg-[#EA1D2C]"></span>
               Door-to-Door Delivery
             </div>
-            <div class="flex items-center gap-2.5 p-3 rounded-md bg-white border border-slate-200">
+            <div class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-white border border-slate-200">
               <span class="w-2 h-2 rounded-full bg-[#EA1D2C]"></span>
               Customs Clearance Support
             </div>
-            <div class="flex items-center gap-2.5 p-3 rounded-md bg-white border border-slate-200 sm:col-span-2">
+            <div class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-white border border-slate-200 sm:col-span-2">
               <span class="w-2 h-2 rounded-full bg-[#EA1D2C]"></span>
               Small & Large Shipment Accepted
             </div>
@@ -322,7 +144,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
           <div class="pt-2">
             <a
               href="/services"
-              class="inline-flex items-center justify-center px-6 py-3 rounded-md bg-[#11181E] text-white text-xs font-bold hover:bg-slate-800 transition-colors duration-150 border border-[#11181E]"
+              class="inline-flex items-center justify-center px-6 py-2.5 sm:py-3 rounded-md bg-[#11181E] text-white text-xs font-bold hover:bg-slate-800 transition-colors duration-150 border border-[#11181E]"
             >
               Learn More
             </a>
@@ -331,12 +153,12 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
 
         {/* Right Column: Air or Sea Comparison Card */}
         <div class="lg:col-span-6">
-          <div class="p-8 sm:p-10 rounded-lg bg-white border border-slate-200 space-y-6">
+          <div class="p-5 sm:p-8 lg:p-10 rounded-xl bg-white border border-slate-200 space-y-5 sm:space-y-6">
             <div>
               <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block font-mono">
                 /BY AIR, BY SHIP &amp; HAND CARRY
               </span>
-              <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1">
+              <h3 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-1">
                 Choose the Right Shipping Method
               </h3>
               <p class="text-xs text-slate-500 italic mt-1">
@@ -344,15 +166,15 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
               </p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2">
               {/* By Air */}
-              <div class="p-5 rounded-md bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="p-4 sm:p-5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                 <span class="text-[11px] font-bold text-[#EA1D2C] uppercase tracking-wider block font-mono">
                   Approx. transit
                 </span>
-                <div class="text-base font-black text-slate-900">By Air</div>
-                <div class="text-2xl font-black text-[#EA1D2C] font-mono">7–14 Days</div>
-                <div class="pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
+                <div class="text-sm sm:text-base font-black text-slate-900">By Air</div>
+                <div class="text-xl sm:text-2xl font-black text-[#EA1D2C] font-mono">7–14 Days</div>
+                <div class="pt-2.5 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
                   <div class="font-bold text-slate-900">Best for:</div>
                   <div class="flex items-center gap-1.5"><span class="text-[#EA1D2C]">•</span> Urgent commercial cargo</div>
                   <div class="flex items-center gap-1.5"><span class="text-[#EA1D2C]">•</span> Small &amp; medium packages</div>
@@ -361,13 +183,13 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
               </div>
 
               {/* By Ship */}
-              <div class="p-5 rounded-md bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="p-4 sm:p-5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                 <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block font-mono">
                   Approx. transit
                 </span>
-                <div class="text-base font-black text-slate-900">By Ship</div>
-                <div class="text-2xl font-black text-slate-900 font-mono">35–45 Days</div>
-                <div class="pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
+                <div class="text-sm sm:text-base font-black text-slate-900">By Ship</div>
+                <div class="text-xl sm:text-2xl font-black text-slate-900 font-mono">35–45 Days</div>
+                <div class="pt-2.5 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
                   <div class="font-bold text-slate-900">Best for:</div>
                   <div class="flex items-center gap-1.5"><span class="text-slate-400">•</span> Large bulk shipments</div>
                   <div class="flex items-center gap-1.5"><span class="text-slate-400">•</span> Heavy machinery &amp; FCL/LCL</div>
@@ -376,13 +198,13 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
               </div>
 
               {/* Hand Carry */}
-              <div class="p-5 rounded-md bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="p-4 sm:p-5 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
                 <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider block font-mono">
                   Approx. transit
                 </span>
-                <div class="text-base font-black text-slate-900">Hand Carry</div>
-                <div class="text-2xl font-black text-amber-600 font-mono">24–48 Hours</div>
-                <div class="pt-3 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
+                <div class="text-sm sm:text-base font-black text-slate-900">Hand Carry</div>
+                <div class="text-xl sm:text-2xl font-black text-amber-600 font-mono">24–48 Hours</div>
+                <div class="pt-2.5 border-t border-slate-200 text-xs text-slate-600 space-y-1.5">
                   <div class="font-bold text-slate-900">Best for:</div>
                   <div class="flex items-center gap-1.5"><span class="text-amber-500">•</span> Urgent product samples</div>
                   <div class="flex items-center gap-1.5"><span class="text-amber-500">•</span> Critical electronics &amp; chips</div>
@@ -399,24 +221,24 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- MOVE WITH CONFIDENCE CTA BANNER                                           -->
   <!-- ========================================================================= -->
-  <section class="py-14 bg-[#11181E] text-white border-b border-slate-800">
+  <section class="py-8 sm:py-12 bg-slate-50 text-slate-900 border-y border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-        <div class="space-y-2 max-w-2xl text-center md:text-left">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
+        <div class="space-y-1.5 sm:space-y-2 max-w-2xl text-center md:text-left">
           <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block font-mono">
             Move with Confidence
           </span>
-          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
+          <h2 class="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-[#11181E] font-['Manrope',sans-serif]">
             Looking for a Reliable China to Bangladesh Shipping Partner?
           </h2>
-          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
             Tell us what you need to ship and our team will help you choose the right shipping solution.
           </p>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-3 shrink-0">
           <a
             href="#quote-section"
-            class="px-6 py-3 rounded-md bg-[#EA1D2C] text-white text-xs font-bold hover:bg-[#D01422] transition-colors duration-150"
+            class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-md bg-[#EA1D2C] text-white text-xs font-bold hover:bg-[#D01422] transition-colors duration-150 shadow-xs"
           >
             Get a Quote
           </a>
@@ -424,7 +246,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
             href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote."
             target="_blank"
             rel="noreferrer"
-            class="px-6 py-3 rounded-md border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs font-bold hover:bg-emerald-900/60 transition-colors duration-150 inline-flex items-center gap-2"
+            class="px-5 sm:px-6 py-2.5 sm:py-3 rounded-md border border-emerald-600 bg-white text-emerald-700 text-xs font-bold hover:bg-emerald-50 transition-colors duration-150 inline-flex items-center gap-2 shadow-2xs"
           >
             WhatsApp Us
           </a>
@@ -436,32 +258,32 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 4. WHY GOSHIPPING: Why Businesses Choose Go Shipping                      -->
   <!-- ========================================================================= -->
-  <section id="why-us" class="py-20 lg:py-28 bg-[#F8FAFC] border-b border-slate-200">
+  <section id="why-us" class="py-10 sm:py-16 lg:py-20 bg-[#F8FAFC] border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-3 font-mono">
+      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-2 sm:mb-3 font-mono">
         /WHY GO SHIPPING
       </span>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-8 sm:mb-12 lg:mb-14">
         <div class="lg:col-span-7">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             Why Businesses Choose<br />
             <span class="text-slate-400 font-medium">Go Shipping.</span>
           </h2>
         </div>
         <div class="lg:col-span-5 lg:pl-6">
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed font-normal">
             Careful planning, transparent communication, and dedicated customer support at every stage of your China-to-Bangladesh supply chain.
           </p>
         </div>
       </div>
 
       {/* 6 Core Strengths Grid */}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Strength 1: Reliable Service */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">01</span>
               <div class="w-9 h-9 rounded-md bg-red-50 text-[#EA1D2C] flex items-center justify-center">
@@ -471,7 +293,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Reliable Service
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -481,8 +303,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Strength 2: Transparent Communication */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">02</span>
               <div class="w-9 h-9 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -491,7 +313,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Transparent Communication
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -501,8 +323,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Strength 3: Secure Cargo Handling */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">03</span>
               <div class="w-9 h-9 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -511,7 +333,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Secure Cargo Handling
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -521,8 +343,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Strength 4: Door-to-Door Delivery */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">04</span>
               <div class="w-9 h-9 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -532,7 +354,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Door-to-Door Delivery
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -542,8 +364,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Strength 5: China Warehouse Support */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">05</span>
               <div class="w-9 h-9 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -553,7 +375,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               China Warehouse Support
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -563,8 +385,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Strength 6: Dedicated Customer Support */}
-        <div class="space-y-4 bg-white p-7 rounded-lg border border-slate-200 flex flex-col justify-between">
-          <div class="space-y-3">
+        <div class="space-y-3 sm:space-y-4 bg-white p-5 sm:p-6 lg:p-7 rounded-xl border border-slate-200 flex flex-col justify-between shadow-2xs">
+          <div class="space-y-2.5 sm:space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-2xl font-black text-[#EA1D2C] font-mono">06</span>
               <div class="w-9 h-9 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center">
@@ -573,7 +395,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
                 </svg>
               </div>
             </div>
-            <h3 class="text-lg font-extrabold text-slate-900">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
               Dedicated Customer Support
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -588,23 +410,23 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 5. SHIPMENT VISIBILITY: Track Your Shipment                               -->
   <!-- ========================================================================= -->
-  <section id="tracking-section" class="py-20 lg:py-28 bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+  <section id="tracking-section" class="py-10 sm:py-16 lg:py-20 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div class="max-w-3xl">
           <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-2 font-mono">
             /SHIPMENT VISIBILITY
           </span>
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             Track Your Shipment.
           </h2>
-          <p class="text-sm sm:text-base text-slate-600 mt-2 leading-relaxed">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 mt-2 leading-relaxed">
             Enter your tracking information to check your shipment status or open the dedicated tracking portal.
           </p>
         </div>
         <a
           href="/tracking"
-          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-900 transition-colors shrink-0 shadow-xs"
+          class="inline-flex items-center gap-2 px-4 py-2 sm:py-2.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-900 transition-colors shrink-0 shadow-xs"
         >
           <span>Open Full Tracking Portal</span>
           <svg class="w-3.5 h-3.5 text-[#EA1D2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -621,20 +443,20 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 6. SHIP FOR ME: Forwarding Concierge & Instant Freight Calculator          -->
   <!-- ========================================================================= -->
-  <section id="quote-section" class="py-20 lg:py-28 bg-[#F8FAFC] border-b border-slate-200">
+  <section id="quote-section" class="py-10 sm:py-16 lg:py-20 bg-[#F8FAFC] border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl mb-12">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#EA1D2C] text-xs font-bold font-mono tracking-wide uppercase mb-3">
+      <div class="max-w-3xl mb-8 sm:mb-10 lg:mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#EA1D2C] text-xs font-bold font-mono tracking-wide uppercase mb-2.5 sm:mb-3">
           <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C] animate-pulse"></span>
           /SHIP FOR ME CONCIERGE
         </div>
-        <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
           Ship for Me.
         </h2>
-        <p class="text-sm sm:text-base text-slate-600 mt-2.5 leading-relaxed">
+        <p class="text-xs sm:text-sm lg:text-base text-slate-600 mt-2 leading-relaxed">
           Buy from 1688, Taobao, Alibaba, or any Chinese factory — ship directly to our China warehouses in Guangzhou or Yiwu, and let GoShipping handle receiving, customs clearance, and door-to-door delivery anywhere in Bangladesh.
         </p>
-        <div class="mt-4 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-700">
+        <div class="mt-3.5 sm:mt-4 flex flex-wrap items-center gap-2.5 sm:gap-4 text-xs font-semibold text-slate-700">
           <a href="tel:+8801797252627" class="hover:text-[#EA1D2C] transition-colors inline-flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -671,72 +493,61 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 7. CLIENT FEEDBACK: What Our Clients Say                                  -->
   <!-- ========================================================================= -->
-  <section class="py-20 lg:py-28 bg-white border-b border-slate-200">
+  <section class="py-10 sm:py-16 lg:py-20 bg-white border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-3 font-mono">
+      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-2 sm:mb-3 font-mono">
         /CLIENT FEEDBACK
       </span>
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-16">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-8 sm:mb-12 lg:mb-14">
         <div class="lg:col-span-7">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             What Our Clients Say.
           </h2>
         </div>
         <div class="lg:col-span-5 lg:pl-6">
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed font-normal">
             Sample testimonial slots prepared for verified client feedback.
           </p>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Testimonial 1 */}
-        <div class="p-7 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <p class="text-sm sm:text-base text-slate-700 leading-relaxed italic">
-            “The team kept us informed throughout the shipping process and handled our cargo professionally.”
-          </p>
-          <div class="pt-4 border-t border-slate-200 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-md bg-[#EA1D2C] text-white flex items-center justify-center font-bold text-xs">
-              V
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+        {(dynamicTestimonials && dynamicTestimonials.length > 0 ? dynamicTestimonials : []).map((t) => (
+          <div class="p-5 sm:p-6 lg:p-7 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-4 sm:space-y-6 shadow-2xs hover:border-slate-300 transition-colors">
+            <div class="space-y-2.5 sm:space-y-3">
+              <div class="flex items-center gap-1 text-amber-500">
+                {Array.from({ length: t.rating || 5 }).map(() => (
+                  <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal">
+                “{t.quote}”
+              </p>
             </div>
-            <div>
-              <div class="text-xs font-extrabold text-slate-900">Verified Client</div>
-              <div class="text-[11px] text-slate-500">Client placeholder</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Testimonial 2 */}
-        <div class="p-7 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <p class="text-sm sm:text-base text-slate-700 leading-relaxed italic">
-            “Clear communication and dependable door-to-door support made importing much easier for our business.”
-          </p>
-          <div class="pt-4 border-t border-slate-200 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-md bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-              O
-            </div>
-            <div>
-              <div class="text-xs font-extrabold text-slate-900">Online Seller</div>
-              <div class="text-[11px] text-slate-500">Client placeholder</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Testimonial 3 */}
-        <div class="p-7 rounded-lg bg-slate-50 border border-slate-200 flex flex-col justify-between space-y-6">
-          <p class="text-sm sm:text-base text-slate-700 leading-relaxed italic">
-            “A practical logistics partner for regular shipments from China to Bangladesh.”
-          </p>
-          <div class="pt-4 border-t border-slate-200 flex items-center gap-3">
-            <div class="w-9 h-9 rounded-md bg-slate-800 text-white flex items-center justify-center font-bold text-xs">
-              E
-            </div>
-            <div>
-              <div class="text-xs font-extrabold text-slate-900">E-commerce Business Owner</div>
-              <div class="text-[11px] text-slate-500">Client placeholder</div>
+            <div class="pt-3.5 sm:pt-4 border-t border-slate-200 flex items-center justify-between">
+              <div class="flex items-center gap-2.5 sm:gap-3">
+                {t.avatarUrl ? (
+                  <img src={t.avatarUrl} alt={t.clientName} class="w-9 h-9 rounded-md object-cover border border-slate-200 shrink-0" />
+                ) : (
+                  <div class="w-9 h-9 rounded-md bg-[#EA1D2C] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    {t.initial || (t.clientName ? t.clientName.charAt(0).toUpperCase() : 'C')}
+                  </div>
+                )}
+                <div>
+                  <div class="text-xs font-extrabold text-slate-900">{t.clientName}</div>
+                  <div class="text-[11px] text-slate-500">{t.roleOrCompany}</div>
+                </div>
+              </div>
+              {t.tag && (
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-bold shrink-0">
+                  {t.tag}
+                </span>
+              )}
             </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   </section>
@@ -744,32 +555,32 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 8. COMMON QUESTIONS: Frequently Asked Questions (FAQ)                     -->
   <!-- ========================================================================= -->
-  <section class="py-20 lg:py-28 bg-[#F8FAFC] border-b border-slate-200">
+  <section class="py-10 sm:py-16 lg:py-20 bg-[#F8FAFC] border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
-      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-3 font-mono">
+      <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block mb-2 sm:mb-3 font-mono">
         /COMMON QUESTIONS
       </span>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-14">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-8 sm:mb-12">
         <div class="lg:col-span-7">
-          <h2 class="text-3xl sm:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.08]">
+          <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#11181E] tracking-tight leading-[1.12]">
             Everything You Need to Know.<br />
             <span class="text-slate-400 font-medium">Clear answers before your next shipment.</span>
           </h2>
         </div>
         <div class="lg:col-span-5 lg:pl-6">
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+          <p class="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed font-normal">
             Helpful answers on China-to-Bangladesh air shipment, sea freight, customs clearance, transit timelines, and door-to-door delivery.
           </p>
         </div>
       </div>
 
       {/* FAQ Grid: All 8 Common Questions */}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-5xl">
         {/* Q1 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             How can I ship products from China to Bangladesh?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -778,8 +589,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q2 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             How long does air shipment take?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -788,8 +599,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q3 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             How long does sea shipment take?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -798,8 +609,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q4 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             Do you provide door-to-door delivery?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -808,8 +619,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q5 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             Can you handle small shipments?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -818,8 +629,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q6 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             Do you support online sellers?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -828,8 +639,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q7 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             How can I get a shipping quote?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -838,8 +649,8 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
         </div>
 
         {/* Q8 */}
-        <div class="p-6 rounded-lg bg-white border border-slate-200 space-y-2">
-          <h3 class="text-base font-extrabold text-slate-900">
+        <div class="p-4 sm:p-6 rounded-xl bg-white border border-slate-200 space-y-2 shadow-2xs">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
             How can I track my shipment?
           </h3>
           <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -925,22 +736,22 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
   <!-- ========================================================================= -->
   <!-- 9. FINAL QUOTE CTA BANNER: Ready to Ship?                                 -->
   <!-- ========================================================================= -->
-  <section class="py-20 lg:py-28 bg-[#11181E] text-white border-t border-slate-800">
+  <section class="py-10 sm:py-16 lg:py-20 bg-gradient-to-r from-red-50/80 via-rose-50/40 to-white text-slate-900 border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="max-w-4xl mx-auto text-center space-y-6">
+      <div class="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6">
         <span class="text-xs font-bold text-[#EA1D2C] uppercase tracking-wider block font-mono">
           /READY TO SHIP?
         </span>
-        <h2 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08]">
+        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.12] text-[#11181E] font-['Manrope',sans-serif]">
           Let’s move your business forward.
         </h2>
-        <p class="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        <p class="text-xs sm:text-sm lg:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
           Reliable China to Bangladesh air, sea and door-to-door logistics for businesses of every size.
         </p>
-        <div class="pt-4 flex flex-wrap justify-center gap-4">
+        <div class="pt-2 sm:pt-4 flex flex-col sm:flex-row justify-center items-stretch sm:items-center gap-3 sm:gap-4 max-w-sm sm:max-w-none mx-auto">
           <a
             href="#quote-section"
-            class="px-7 py-3.5 rounded-md bg-[#EA1D2C] text-white text-xs font-bold hover:bg-[#D01422] active:bg-[#B7101C] transition-colors duration-150"
+            class="min-h-[44px] px-6 py-3 rounded-lg bg-[#EA1D2C] text-white text-xs font-bold hover:bg-[#D01422] active:bg-[#B7101C] transition-colors duration-150 shadow-xs flex items-center justify-center text-center"
           >
             Get a Quote
           </a>
@@ -948,7 +759,7 @@ import { IndustrialScrollShowcase } from '../components/marketing/IndustrialScro
             href="https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20would%20like%20a%20shipping%20quote."
             target="_blank"
             rel="noreferrer"
-            class="px-7 py-3.5 rounded-md border border-emerald-500/50 bg-emerald-950/40 text-emerald-300 text-xs font-bold hover:bg-emerald-900/60 transition-colors duration-150 inline-flex items-center gap-2"
+            class="min-h-[44px] px-6 py-3 rounded-lg border border-emerald-600 bg-white text-emerald-700 text-xs font-bold hover:bg-emerald-50 transition-colors duration-150 flex items-center justify-center gap-2 shadow-2xs text-center"
           >
             WhatsApp Us
           </a>

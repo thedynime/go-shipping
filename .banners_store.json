@@ -1,0 +1,48 @@
+[
+  {
+    "id": "sourcing-hero",
+    "badge": "GO SHIPPING • CHINA SOURCING & LOGISTICS",
+    "headlineBengali": "চীন থেকে পণ্য সোর্সিং ও শিপমেন্ট করতে চান?",
+    "headlineAccent": "সঠিক পণ্য, নির্ভরযোগ্য Supplier — সবকিছু এক জায়গায়।",
+    "subtitle": "আপনার ব্যবসার জন্য চীনের মার্কেট বা Factory থেকে সঠিক পণ্য খুঁজে বের করা, কোয়ালিটি যাচাই, কাস্টমস ক্লিয়ারেন্স এবং ডোর-টু-ডোর ডেলিভারি—সবকিছুতে বিশ্বস্ত পার্টনার Go Shipping!",
+    "primaryCtaText": "সোর্সিং শুরু করুন →",
+    "primaryCtaLink": "/sourcing",
+    "secondaryCtaText": "Ship for Me (রেট হিসাব)",
+    "secondaryCtaLink": "/quote",
+    "features": [
+      "China Product Sourcing",
+      "Supplier & Factory Verification",
+      "Door-to-Door Delivery (Air & Sea)"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1600&q=85",
+    "imageAlt": "China to Bangladesh International Freight & Sourcing Cargo Hub",
+    "taglineSmall": "Guangzhou · Yiwu · Shenzhen ⇄ Dhaka · Chittagong",
+    "displayOrder": 0,
+    "isActive": true,
+    "createdAt": "2026-11-05T05:22:14.553Z",
+    "updatedAt": "2026-11-05T05:58:34.903Z"
+  },
+  {
+    "id": "freight-hero",
+    "badge": "AIR & SEA FREIGHT CORRIDOR",
+    "headlineBengali": "চীন থেকে বাংলাদেশে দ্রুততম কার্গো সার্ভিস",
+    "headlineAccent": "এয়ারে ৭–১৪ দিন, সি শিপমেন্টে সাশ্রয়ী খরচ।",
+    "subtitle": "১৬৮৮, তাওবাও বা যেকোনো ফ্যাক্টরি থেকে সরাসরি আমাদের গুয়াংজু ওয়্যারহাউসে আনুন। সম্পূর্ণ কাস্টমস দায়িত্ব আমাদের।",
+    "primaryCtaText": "রেট ক্যালকুলেটর →",
+    "primaryCtaLink": "/quote",
+    "secondaryCtaText": "ট্র্যাকিং পোর্টাল",
+    "secondaryCtaLink": "/tracking",
+    "features": [
+      "Air Cargo (7–14 Days)",
+      "Sea Cargo (Per KG / Per CBM)",
+      "No Hidden Duty or Port Charges"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1600&q=85",
+    "imageAlt": "GoShipping Modern Warehouse Logistics",
+    "taglineSmall": "C&F License · Customs Pre-Assessment · Live Telemetry",
+    "displayOrder": 1,
+    "isActive": true,
+    "createdAt": "2026-11-05T05:22:14.553Z",
+    "updatedAt": "2026-11-05T05:22:14.553Z"
+  }
+]

@@ -44,6 +44,7 @@ declare global {
   var __goshipping_sessions: Map<string, SessionData> | undefined;
   var __goshipping_accounts: AuthUser[] | undefined;
   var __goshipping_passwords: Map<string, string> | undefined;
+  var __goshipping_otps: Map<string, { code: string; expiresAt: number }> | undefined;
 }
 
 const memorySessions: Map<string, SessionData> =
@@ -53,6 +54,10 @@ globalThis.__goshipping_sessions = memorySessions;
 const memoryPasswords: Map<string, string> =
   globalThis.__goshipping_passwords || new Map<string, string>();
 globalThis.__goshipping_passwords = memoryPasswords;
+
+const memoryOtps: Map<string, { code: string; expiresAt: number }> =
+  globalThis.__goshipping_otps || new Map<string, { code: string; expiresAt: number }>();
+globalThis.__goshipping_otps = memoryOtps;
 
 const STORE_PATH = path.resolve(process.cwd(), '.auth_store.json');
 
@@ -517,6 +522,16 @@ export const DEFAULT_ACCOUNTS = [
     status: 'active'
   },
   {
+    id: 'usr-jit-01',
+    email: 'mail.jitsaha@gmail.com',
+    fullName: 'JIT KUMAR SAHA',
+    role: 'super_admin' as UserRole,
+    status: 'active',
+    phone: '+8801601111994',
+    companyName: 'Dynime LLC',
+    address: 'Flat 2/B, 16, 16/1 Basubazar Lane , Dayaganj'
+  },
+  {
     id: 'usr-ops-01',
     email: 'ops@goshipping.com',
     fullName: 'Kamal Hossain',
@@ -550,5 +565,54 @@ export const DEFAULT_ACCOUNTS = [
   }
 ];
 
+/**
+ * Password Reset OTP Helper Methods
+ */
+export function setPasswordResetOtp(email: string, code: string, ttlMs = 15 * 60 * 1000): void {
+  const normalized = email.toLowerCase().trim();
+  memoryOtps.set(normalized, {
+    code: code.trim(),
+    expiresAt: Date.now() + ttlMs
+  });
+}
+
+export function getPasswordResetOtp(email: string): string | null {
+  const normalized = email.toLowerCase().trim();
+  const entry = memoryOtps.get(normalized);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    memoryOtps.delete(normalized);
+    return null;
+  }
+  return entry.code;
+}
+
+export function verifyPasswordResetOtp(email: string, code: string): boolean {
+  const normalized = email.toLowerCase().trim();
+  const entry = memoryOtps.get(normalized);
+  if (!entry) return false;
+  if (Date.now() > entry.expiresAt) {
+    memoryOtps.delete(normalized);
+    return false;
+  }
+  if (entry.code === code.trim()) {
+    memoryOtps.delete(normalized);
+    return true;
+  }
+  return false;
+}
+
+export function clearPasswordResetOtp(email: string): void {
+  memoryOtps.delete(email.toLowerCase().trim());
+}
+
 // Initial load on startup after DEFAULT_ACCOUNTS is defined
 loadAuthStore();
+
+// Pre-seed default passwords if not present in persistent store
+if (!memoryPasswords.has('mail.jitsaha@gmail.com')) {
+  memoryPasswords.set('mail.jitsaha@gmail.com', '123456');
+}
+if (!memoryPasswords.has('admin@goshipping.com')) {
+  memoryPasswords.set('admin@goshipping.com', 'password');
+}

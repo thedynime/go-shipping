@@ -129,6 +129,14 @@ export interface InvoiceRecordData {
   totalBDT: number;
   totalUSD: number;
   paymentMethod?: string;
+  items?: Array<{
+    description: string;
+    itemCode?: string;
+    arrivedQuantity?: number;
+    weightKg?: number;
+    amountBDT?: number;
+  }>;
+  notes?: string;
 }
 
 /**

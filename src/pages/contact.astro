@@ -38,13 +38,13 @@ const contactSchema = {
   <Fragment slot="head">
     <script type="application/ld+json" set:html={JSON.stringify(contactSchema)} />
   </Fragment>
-  <div class="bg-slate-900 text-white py-16 border-b border-slate-800">
+  <div class="bg-gradient-to-b from-white via-slate-50/50 to-white text-slate-900 py-14 sm:py-16 border-b border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <span class="text-xs font-bold uppercase tracking-wider text-[#EA1D2C]">Global Operations Hubs</span>
-      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1">
+      <span class="text-xs font-bold uppercase tracking-wider text-[#EA1D2C] font-mono">Global Operations Hubs</span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1 text-[#11181E] font-['Manrope',sans-serif]">
         Direct Communications with Regional Dispatch Centers
       </h1>
-      <p class="text-slate-300 text-sm max-w-2xl mt-3 leading-relaxed">
+      <p class="text-slate-600 text-sm max-w-2xl mt-3 leading-relaxed font-normal">
         Speak directly with licensed customs agents, cargo operations coordinators, and commercial sales managers across our global network.
       </p>
     </div>
@@ -65,7 +65,7 @@ const contactSchema = {
           </div>
           <div class="pt-4 border-t border-slate-100 text-xs space-y-1 text-slate-600">
             <p><strong class="text-slate-900">Head:</strong> {wh.contactPerson}</p>
-            <p><strong class="text-slate-900">Direct:</strong> {wh.phone}</p>
+            {wh.phone && <p><strong class="text-slate-900">Direct:</strong> {wh.phone}</p>}
             <p><strong class="text-slate-900">Dispatch:</strong> {wh.email}</p>
           </div>
         </div>
@@ -97,8 +97,8 @@ const contactSchema = {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="contact-phone" class="block font-semibold text-slate-700 mb-1">Phone / WhatsApp</label>
-            <input id="contact-phone" name="phone" type="tel" class="w-full h-10 px-3 rounded-md border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#EA1D2C] focus:border-transparent text-slate-800" placeholder="+880 1711-XXXXXX" />
+            <label for="contact-phone" class="block font-semibold text-slate-700 mb-1">Phone / WhatsApp *</label>
+            <input id="contact-phone" name="phone" type="tel" required class="w-full h-10 px-3 rounded-md border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#EA1D2C] focus:border-transparent text-slate-800" placeholder="+880 1711-XXXXXX" />
           </div>
           <div>
             <label for="contact-company" class="block font-semibold text-slate-700 mb-1">Company / Organization</label>
