@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { db } from '../db/client';
 import { posLedger } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
+import { syncOrderToGoogleSheet } from './googleSheetSync.service';
 
 export interface PosLedgerRecord {
   id: string;
@@ -350,6 +351,11 @@ export class PosLedgerService {
       });
     } catch {}
 
+    // Non-blocking background sync to Google Sheet
+    syncOrderToGoogleSheet(record).catch((err) => {
+      console.error('[GoogleSheetSync] Background sync failed:', err);
+    });
+
     return record;
   }
 
@@ -411,6 +417,11 @@ export class PosLedgerService {
         profitEstimateBdt: String(updated.profitEstimateBdt)
       }).where(eq(posLedger.id, id));
     } catch {}
+
+    // Non-blocking background sync to Google Sheet
+    syncOrderToGoogleSheet(updated).catch((err) => {
+      console.error('[GoogleSheetSync] Background sync failed:', err);
+    });
 
     return updated;
   }

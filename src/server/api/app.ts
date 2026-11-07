@@ -28,6 +28,11 @@ import { ShippingConfigService } from '../services/shippingConfig.service';
 import { BannerService } from '../services/banner.service';
 import { TestimonialService } from '../services/testimonial.service';
 import { PosLedgerService } from '../services/posLedger.service';
+import {
+  syncOrderToGoogleSheet,
+  batchSyncOrdersToGoogleSheet,
+  getGoogleSheetWebhookUrl
+} from '../services/googleSheetSync.service';
 import { AuditService } from '../services/audit.service';
 import { RealtimeService } from '../services/realtime.service';
 import { EmailService } from '../services/email.service';
@@ -1806,6 +1811,41 @@ app.get('/admin/pos-ledger/export', async (c) => {
       'Content-Disposition': `attachment; filename="goshipping_pos_ledger_${new Date().toISOString().split('T')[0]}.csv"`
     }
   });
+});
+
+app.get('/admin/pos-ledger/sync-sheet/status', async (c) => {
+  const url = getGoogleSheetWebhookUrl();
+  return c.json({
+    configured: Boolean(url),
+    webhookUrl: url ? url.substring(0, 45) + '...' : null
+  });
+});
+
+app.post('/admin/pos-ledger/sync-sheet', async (c) => {
+  let user = c.get('user' as any) as AuthUser | undefined;
+  if (!user && process.env.NODE_ENV !== 'production') {
+    user = DEFAULT_ACCOUNTS[0];
+  }
+  if (!user || user.role === 'customer') {
+    return c.json({ error: 'Unauthorized.' }, 403);
+  }
+
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    if (body.id) {
+      const record = await PosLedgerService.getById(body.id);
+      if (!record) return c.json({ error: 'Record not found' }, 404);
+      const res = await syncOrderToGoogleSheet(record);
+      return c.json({ success: res.success, result: res });
+    }
+
+    // Full batch sync
+    const records = await PosLedgerService.listRecords();
+    const batchRes = await batchSyncOrdersToGoogleSheet(records);
+    return c.json({ success: true, result: batchRes });
+  } catch (err: any) {
+    return c.json({ error: err.message || 'Sheet sync failed' }, 500);
+  }
 });
 
 // 14. Admin Operations KPIs

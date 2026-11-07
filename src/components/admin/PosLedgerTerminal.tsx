@@ -33,6 +33,8 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
   const [importCsvText, setImportCsvText] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [savingRecord, setSavingRecord] = useState(false);
+  const [isSyncingSheet, setIsSyncingSheet] = useState(false);
+  const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
 
   // Quick POS Form State
   const [formData, setFormData] = useState({
@@ -306,6 +308,48 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
     }
   };
 
+  const handleSyncGoogleSheet = async () => {
+    setIsSyncingSheet(true);
+    try {
+      const res = await fetch('/api/admin/pos-ledger/sync-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`Synced ${data.result?.successful || 0} orders to Google Sheet successfully!`, 'success');
+      } else {
+        throw new Error(data.error || 'Failed to sync to Google Sheet');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Google Sheet sync error', 'error');
+    } finally {
+      setIsSyncingSheet(false);
+    }
+  };
+
+  const handleSyncSingleOrder = async (recordId: string, orderCode: string) => {
+    setSyncingOrderId(recordId);
+    try {
+      const res = await fetch('/api/admin/pos-ledger/sync-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: recordId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast(`Order ${orderCode} synced to Google Sheet!`, 'success');
+      } else {
+        throw new Error(data.error || 'Failed to sync order');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Sync error', 'error');
+    } finally {
+      setSyncingOrderId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 font-['Inter',sans-serif]">
       {/* 1. POS SUMMARY & KPI CARDS (Real-time Financial Overview) */}
@@ -431,6 +475,26 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
             </svg>
             <span>Export CSV</span>
           </a>
+
+          <button
+            type="button"
+            disabled={isSyncingSheet}
+            onClick={handleSyncGoogleSheet}
+            className={`px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-none shadow-2xs ${
+              isSyncingSheet ? 'opacity-70 cursor-wait' : ''
+            }`}
+            title="Auto-sync all orders to your connected Google Sheet"
+          >
+            <svg
+              className={`w-3.5 h-3.5 text-emerald-700 stroke-[2] ${isSyncingSheet ? 'animate-spin' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            <span>{isSyncingSheet ? 'Syncing...' : 'Sync to Sheet'}</span>
+          </button>
 
           <button
             type="button"
@@ -612,6 +676,26 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
                             <polyline points="14 2 14 8 20 8" />
                             <line x1="16" y1="13" x2="8" y2="13" />
                             <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                        </button>
+
+                        {/* Sync to Google Sheet */}
+                        <button
+                          type="button"
+                          disabled={syncingOrderId === r.id}
+                          onClick={() => handleSyncSingleOrder(r.id, r.orderId)}
+                          className={`p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:border-emerald-200 text-slate-700 hover:text-emerald-700 text-xs cursor-pointer shadow-2xs transition-colors ${
+                            syncingOrderId === r.id ? 'opacity-60 cursor-wait' : ''
+                          }`}
+                          title="Sync this order to Google Sheet"
+                        >
+                          <svg
+                            className={`w-3.5 h-3.5 stroke-[2] ${syncingOrderId === r.id ? 'animate-spin text-emerald-600' : ''}`}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                          >
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
                           </svg>
                         </button>
 
