@@ -64,8 +64,8 @@ const contactSchema = {
             <p class="text-xs text-slate-600 mt-2 leading-relaxed">{wh.address}</p>
           </div>
           <div class="pt-4 border-t border-slate-100 text-xs space-y-1 text-slate-600">
-            <p><strong class="text-slate-900">Head:</strong> {wh.contactPerson}</p>
-            {wh.phone && <p><strong class="text-slate-900">Direct:</strong> {wh.phone}</p>}
+            <p><strong class="text-slate-900">Head:</strong> {wh.code === 'DAC-HUB' ? 'Kamal Hossain' : wh.contactPerson}</p>
+            {wh.code !== 'DAC-HUB' && wh.phone && <p><strong class="text-slate-900">Direct:</strong> {wh.phone}</p>}
             <p><strong class="text-slate-900">Dispatch:</strong> {wh.email}</p>
           </div>
         </div>

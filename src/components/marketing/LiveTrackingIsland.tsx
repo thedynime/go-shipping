@@ -168,7 +168,7 @@ export default function LiveTrackingIsland({
   const [realtimeProvider, setRealtimeProvider] = useState<'pusher' | 'ably' | 'polling'>('polling');
 
   // Active view tab: 'timeline' | 'items' | 'carrier' | 'recipient' | 'map'
-  const [activeTab, setActiveTab] = useState<'timeline' | 'items' | 'carrier' | 'recipient' | 'map'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'items'>('timeline');
 
   // Copy tracking number feedback
   const [copied, setCopied] = useState(false);
@@ -474,11 +474,11 @@ export default function LiveTrackingIsland({
       )}
 
       {/* ========================================================================= */}
-      {/* 01. SEARCH & CONSIGNMENT SWITCHER BAR (Unified Tracking & History)        */}
+      {/* 01. SEARCH & CONSIGNMENT SWITCHER BAR (Centered & Compact per client)      */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+      <div className="max-w-2xl mx-auto bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
         {/* Unified Top Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-3 text-center">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#EA1D2C] animate-pulse"></span>
             <span className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
@@ -1303,8 +1303,8 @@ export default function LiveTrackingIsland({
               onClick={() => setActiveTab('items')}
               className={`px-4 sm:px-5 py-3 border-b-2 flex items-center gap-2 whitespace-nowrap transition-none cursor-pointer ${
                 activeTab === 'items'
-                  ? 'border-[#EA1D2C] text-[#EA1D2C] bg-slate-50/50 dark:bg-slate-800/40'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  ? 'border-[#EA1D2C] text-[#EA1D2C] bg-slate-50/50'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
               }`}
             >
               <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -1312,56 +1312,6 @@ export default function LiveTrackingIsland({
               </svg>
               <span>Package Details ({trackingData.items.length})</span>
             </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('carrier')}
-              className={`px-4 sm:px-5 py-3 border-b-2 flex items-center gap-2 whitespace-nowrap transition-none cursor-pointer ${
-                activeTab === 'carrier'
-                  ? 'border-[#EA1D2C] text-[#EA1D2C] bg-slate-50/50 dark:bg-slate-800/40'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-              </svg>
-              <span>Carrier & Flight Info</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('recipient')}
-              className={`px-4 sm:px-5 py-3 border-b-2 flex items-center gap-2 whitespace-nowrap transition-none cursor-pointer ${
-                activeTab === 'recipient'
-                  ? 'border-[#EA1D2C] text-[#EA1D2C] bg-slate-50/50 dark:bg-slate-800/40'
-                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              <span>Receiver & Address</span>
-            </button>
-
-            {trackingData.hasLiveGps && (
-              <button
-                type="button"
-                onClick={() => setActiveTab('map')}
-                className={`px-4 sm:px-5 py-3 border-b-2 flex items-center gap-2 whitespace-nowrap transition-none cursor-pointer ${
-                  activeTab === 'map'
-                    ? 'border-[#EA1D2C] text-[#EA1D2C] bg-slate-50/50 dark:bg-slate-800/40'
-                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <svg className="w-4 h-4 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                  <line x1="8" y1="2" x2="8" y2="18" />
-                  <line x1="16" y1="6" x2="16" y2="22" />
-                </svg>
-                <span>Live Map</span>
-              </button>
-            )}
           </div>
 
           <div className="p-5 sm:p-6">
@@ -1536,119 +1486,6 @@ export default function LiveTrackingIsland({
                       ))}
                     </tbody>
                   </table>
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* TAB CONTENT 3: CARRIER & LINEHAUL DETAILS                                 */}
-            {/* ========================================================================= */}
-            {activeTab === 'carrier' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3">
-                  <h4 className="font-bold text-slate-900 dark:text-white font-['Manrope',sans-serif]">
-                    Shipping Carrier & Route Details
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Carrier Operator:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">{trackingData.carrierName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Flight / Vessel / Convoy:</span>
-                      <span className="font-mono font-semibold text-slate-900 dark:text-white">{trackingData.voyageOrFlightNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Master Waybill / BOL:</span>
-                      <span className="font-mono font-semibold text-slate-900 dark:text-white">{trackingData.billOfLadingNumber}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Origin Departure:</span>
-                      <span className="font-mono text-slate-800 dark:text-slate-200">
-                        {formatBstDateTime(trackingData.departureTime)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3">
-                  <h4 className="font-bold text-slate-900 dark:text-white font-['Manrope',sans-serif]">
-                    Delivery Timeline & Customs Station
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Estimated Destination ETA:</span>
-                      <span className="font-mono font-semibold text-[#EA1D2C]">
-                        {formatBstDateTime(trackingData.estimatedDelivery)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Target Terminal:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {trackingData.mode === 'air' ? 'HSIA Cargo Village, Dhaka' : 'Chittagong Port Terminal'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Service SLA:</span>
-                      <span className="font-semibold text-slate-900 dark:text-white uppercase">{trackingData.serviceLevel} Express</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* TAB CONTENT 4: CONSIGNEE & RECIPIENT                                      */}
-            {/* ========================================================================= */}
-            {activeTab === 'recipient' && (
-              <div className="p-5 rounded-lg border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
-                <h4 className="font-bold text-slate-900 dark:text-white font-['Manrope',sans-serif]">
-                  Consignee & Final Delivery Details
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-slate-500 block mb-0.5">Recipient Consignee:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{trackingData.recipientName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block mb-0.5">Destination City:</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">{trackingData.destCity}, {trackingData.destCountry}</span>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-slate-500 block mb-0.5">Delivery Address:</span>
-                    <span className="font-medium text-slate-800 dark:text-slate-200">{trackingData.recipientAddress}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================================= */}
-            {/* TAB CONTENT 5: LIVE CORRIDOR GPS MAP                                      */}
-            {/* ========================================================================= */}
-            {activeTab === 'map' && trackingData.hasLiveGps && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    Verified Coordinates: {trackingData.currentLat?.toFixed(4)}, {trackingData.currentLng?.toFixed(4)}
-                  </span>
-                  <span className="font-mono text-emerald-600 font-semibold">● Live GPS Tracking</span>
-                </div>
-                <div className="w-full h-64 sm:h-80 rounded-lg bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center">
-                  <div className="text-center space-y-2 p-6 z-10">
-                    <div className="w-12 h-12 rounded-full bg-[#EA1D2C]/20 text-[#EA1D2C] flex items-center justify-center mx-auto ring-8 ring-[#EA1D2C]/10">
-                      <svg className="w-6 h-6 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="2" y1="12" x2="22" y2="12" />
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                      </svg>
-                    </div>
-                    <div className="font-mono font-bold text-white text-sm">
-                      {trackingData.currentLocation}
-                    </div>
-                    <div className="text-xs text-slate-400 font-mono">
-                      LAT: {trackingData.currentLat} · LNG: {trackingData.currentLng} · Speed: Transit Normal
-                    </div>
-                  </div>
                 </div>
               </div>
             )}

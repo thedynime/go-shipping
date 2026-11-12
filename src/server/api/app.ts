@@ -31,6 +31,7 @@ import { PosLedgerService } from '../services/posLedger.service';
 import {
   syncOrderToGoogleSheet,
   batchSyncOrdersToGoogleSheet,
+  setupGoogleSheetHeaders,
   getGoogleSheetWebhookUrl
 } from '../services/googleSheetSync.service';
 import { AuditService } from '../services/audit.service';
@@ -1832,6 +1833,11 @@ app.post('/admin/pos-ledger/sync-sheet', async (c) => {
 
   try {
     const body = await c.req.json().catch(() => ({}));
+    if (body.action === 'setup_headers') {
+      const res = await setupGoogleSheetHeaders();
+      return c.json({ success: res.success, result: res });
+    }
+
     if (body.id) {
       const record = await PosLedgerService.getById(body.id);
       if (!record) return c.json({ error: 'Record not found' }, 404);

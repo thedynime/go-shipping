@@ -15,6 +15,32 @@ export interface GoogleSheetSyncResult {
 }
 
 /**
+ * Helper to escape strings so Google Sheets does not treat phone numbers
+ * or plus/equals signs as formulas (which causes #ERROR! in Google Sheets).
+ */
+function escapeForSheet(val: string | null | undefined): string {
+  if (!val) return '';
+  const str = String(val).trim();
+  if (str.startsWith("'")) return str;
+  // If string starts with +, =, -, @, or is a phone number, prepend single quote
+  if (str.startsWith('+') || str.startsWith('=') || str.startsWith('-') || str.startsWith('@')) {
+    return `'${str}`;
+  }
+  return str;
+}
+
+/**
+ * Format phone numbers specifically with a leading apostrophe so Google Sheets
+ * keeps the plus sign and leading zeroes without formula evaluation errors.
+ */
+function formatPhoneForSheet(phone: string | null | undefined): string {
+  if (!phone) return '';
+  const clean = String(phone).trim();
+  if (clean.startsWith("'")) return clean;
+  return `'${clean}`;
+}
+
+/**
  * Format a PosLedgerRecord into the clean payload expected by the Google Sheet script.
  */
 function formatRecordForSheet(record: PosLedgerRecord) {
@@ -22,7 +48,7 @@ function formatRecordForSheet(record: PosLedgerRecord) {
     orderId: record.orderId || '',
     orderDate: record.orderDate || '',
     customerName: record.customerName || '',
-    mobileNo: record.mobileNo || '',
+    mobileNo: formatPhoneForSheet(record.mobileNo),
     shippingMark: record.shippingMark || '',
     itemDetails: record.itemDetails || '',
     supplierName: record.supplierName || 'Taobao',
@@ -44,6 +70,46 @@ function formatRecordForSheet(record: PosLedgerRecord) {
     bdTrackingNo: record.bdTrackingNo || '',
     remark: record.remark || ''
   };
+}
+
+export async function setupGoogleSheetHeaders(): Promise<GoogleSheetSyncResult> {
+  const webhookUrl = getGoogleSheetWebhookUrl();
+  if (!webhookUrl) {
+    return { success: false, error: 'Google Sheet webhook URL not configured' };
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ action: 'setup_headers' }),
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Google Apps Script returned HTTP ${response.status}`);
+    }
+
+    const text = await response.text();
+    let data: any = {};
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { success: true, raw: text };
+    }
+
+    return {
+      success: data.success !== false,
+      action: 'setup_headers'
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Failed to trigger header setup'
+    };
+  }
 }
 
 /**

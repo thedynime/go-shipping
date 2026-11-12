@@ -35,6 +35,10 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
   const [savingRecord, setSavingRecord] = useState(false);
   const [isSyncingSheet, setIsSyncingSheet] = useState(false);
   const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
+  const [showSheetSetupModal, setShowSheetSetupModal] = useState(false);
+  const [isSettingUpHeaders, setIsSettingUpHeaders] = useState(false);
+  const [copiedScript, setCopiedScript] = useState(false);
+  const [copiedHeaders, setCopiedHeaders] = useState(false);
 
   // Quick POS Form State
   const [formData, setFormData] = useState({
@@ -350,6 +354,188 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
     }
   };
 
+  const handleSetupSheetHeaders = async () => {
+    setIsSettingUpHeaders(true);
+    try {
+      const res = await fetch('/api/admin/pos-ledger/sync-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setup_headers' })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast('Google Sheet headers initialized and styled successfully!', 'success');
+      } else {
+        throw new Error(data.error || 'Failed to setup headers');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Header setup error', 'error');
+    } finally {
+      setIsSettingUpHeaders(false);
+    }
+  };
+
+  const copyHeadersToClipboard = () => {
+    const headersTab = "Order ID\tOrder Date\tCustomer Name\tMobile / WhatsApp No\tShipping Mark\tProduct / Item Details\tSupplier / Platform\tQuantity (Pcs)\tUnit Price (RMB ¥)\tTotal Purchase (RMB ¥)\tRMB Rate (BDT)\tPurchase Cost (BDT)\tChina Weight (KG)\tBD Weight (KG)\tShipping Rate / KG (BDT)\tInt'l Freight (BDT)\tTotal Bill (BDT)\tCustomer Paid (BDT)\tOutstanding Due (BDT)\tPayment Status\tOrder Status\tBD Courier Partner\tBD Courier Tracking No\tRemarks / Customer Notes";
+    navigator.clipboard.writeText(headersTab);
+    setCopiedHeaders(true);
+    showToast('24 Column Titles copied! Paste directly in cell A1 of Google Sheets', 'success');
+    setTimeout(() => setCopiedHeaders(false), 3000);
+  };
+
+  const copyScriptToClipboard = () => {
+    const fullScript = `/**
+ * GoShipping — Automated Google Sheet Ledger Sync & Setup
+ */
+var HEADERS = [
+  "Order ID", "Order Date", "Customer Name", "Mobile / WhatsApp No",
+  "Shipping Mark", "Product / Item Details", "Supplier / Platform", "Quantity (Pcs)",
+  "Unit Price (RMB ¥)", "Total Purchase (RMB ¥)", "RMB Rate (BDT)", "Purchase Cost (BDT)",
+  "China Weight (KG)", "BD Weight (KG)", "Shipping Rate / KG (BDT)", "Int'l Freight (BDT)",
+  "Total Bill (BDT)", "Customer Paid (BDT)", "Outstanding Due (BDT)", "Payment Status",
+  "Order Status", "BD Courier Partner", "BD Courier Tracking No", "Remarks / Customer Notes"
+];
+
+function setupSheet() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var firstCellVal = sheet.getRange(1, 1).getValue().toString().trim();
+
+  // If row 1 is not already header, insert new row at top
+  if (firstCellVal !== "Order ID") {
+    sheet.insertRowBefore(1);
+  }
+
+  var headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+  headerRange.setValues([HEADERS]);
+  headerRange.setBackground("#11181E")
+             .setFontColor("#FFFFFF")
+             .setFontWeight("bold")
+             .setFontSize(10)
+             .setHorizontalAlignment("center")
+             .setVerticalAlignment("middle")
+             .setWrap(true);
+
+  sheet.setRowHeight(1, 40);
+  sheet.setFrozenRows(1);
+
+  sheet.getRange("A:A").setNumberFormat("@");
+  sheet.getRange("D:D").setNumberFormat("@");
+  sheet.getRange("E:E").setNumberFormat("@");
+  sheet.getRange("W:W").setNumberFormat("@");
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    for (var r = 2; r <= lastRow; r++) {
+      var cell = sheet.getRange(r, 4);
+      var formula = cell.getFormula();
+      var displayVal = cell.getDisplayValue();
+      if (displayVal === "#ERROR!" || (formula && formula.indexOf("+") !== -1)) {
+        var rawText = formula.replace(/^=/, '');
+        cell.setValue("'" + rawText);
+      }
+    }
+  }
+
+  for (var c = 1; c <= HEADERS.length; c++) {
+    sheet.autoResizeColumn(c);
+  }
+}
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🚀 GoShipping')
+    .addItem('⚙️ Setup Sheet Headers & Styling', 'setupSheet')
+    .addToUi();
+}
+
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    
+    if (data.action === "setup_headers") {
+      setupSheet();
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Headers initialized" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue().toString().trim() !== "Order ID") {
+      setupSheet();
+    }
+
+    var orderId = data.orderId;
+    if (!orderId) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Missing orderId" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var lastRow = sheet.getLastRow();
+    var targetRow = -1;
+    if (lastRow > 1) {
+      var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var i = 0; i < ids.length; i++) {
+        if (ids[i][0] == orderId) {
+          targetRow = i + 2;
+          break;
+        }
+      }
+    }
+
+    var mobile = data.mobileNo ? String(data.mobileNo) : '';
+    if (mobile && !mobile.startsWith("'")) {
+      mobile = "'" + mobile;
+    }
+    
+    var rowValues = [
+      data.orderId || '',
+      data.orderDate || '',
+      data.customerName || '',
+      mobile,
+      data.shippingMark || '',
+      data.itemDetails || '',
+      data.supplierName || 'Taobao',
+      data.quantity || 1,
+      data.unitPriceRmb || 0,
+      data.totalPurchaseRmb || 0,
+      data.rmbRateBdt || 19.5,
+      data.purchaseCostBdt || 0,
+      data.cnWeightKg || 0,
+      data.bdWeightKg || 0,
+      data.shippingRatePerKgBdt || 850,
+      data.internationalFreightBdt || 0,
+      data.totalBillBdt || 0,
+      data.purchaseCostPaidBdt || 0,
+      data.purchaseCostDueBdt || 0,
+      data.paymentStatus || 'Due',
+      data.currentStatus || 'Processing',
+      data.bdCourierName || '',
+      data.bdTrackingNo || '',
+      data.remark || ''
+    ];
+    
+    if (targetRow > 0) {
+      sheet.getRange(targetRow, 1, 1, rowValues.length).setValues([rowValues]);
+    } else {
+      sheet.appendRow(rowValues);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      orderId: orderId,
+      action: targetRow > 0 ? 'updated' : 'appended'
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+    navigator.clipboard.writeText(fullScript);
+    setCopiedScript(true);
+    showToast('Complete Google Apps Script copied!', 'success');
+    setTimeout(() => setCopiedScript(false), 3000);
+  };
+
   return (
     <div className="space-y-6 font-['Inter',sans-serif]">
       {/* 1. POS SUMMARY & KPI CARDS (Real-time Financial Overview) */}
@@ -476,25 +662,40 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
             <span>Export CSV</span>
           </a>
 
-          <button
-            type="button"
-            disabled={isSyncingSheet}
-            onClick={handleSyncGoogleSheet}
-            className={`px-3 py-2 rounded-lg border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-none shadow-2xs ${
-              isSyncingSheet ? 'opacity-70 cursor-wait' : ''
-            }`}
-            title="Auto-sync all orders to your connected Google Sheet"
-          >
-            <svg
-              className={`w-3.5 h-3.5 text-emerald-700 stroke-[2] ${isSyncingSheet ? 'animate-spin' : ''}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
+          <div className="flex items-center rounded-lg border border-emerald-300 bg-emerald-50/70 p-0.5 shadow-2xs">
+            <button
+              type="button"
+              disabled={isSyncingSheet}
+              onClick={handleSyncGoogleSheet}
+              className={`px-3 py-1.5 rounded-md hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-none ${
+                isSyncingSheet ? 'opacity-70 cursor-wait' : ''
+              }`}
+              title="Auto-sync all orders to your connected Google Sheet"
             >
-              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-            </svg>
-            <span>{isSyncingSheet ? 'Syncing...' : 'Sync to Sheet'}</span>
-          </button>
+              <svg
+                className={`w-3.5 h-3.5 text-emerald-700 stroke-[2] ${isSyncingSheet ? 'animate-spin' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+              </svg>
+              <span>{isSyncingSheet ? 'Syncing...' : 'Sync to Sheet'}</span>
+            </button>
+            <div className="w-px h-4 bg-emerald-200 mx-0.5" />
+            <button
+              type="button"
+              onClick={() => setShowSheetSetupModal(true)}
+              className="px-2 py-1.5 rounded-md hover:bg-emerald-100 text-emerald-800 text-xs font-medium cursor-pointer transition-none flex items-center gap-1"
+              title="Setup Google Sheet Headers & Form Formatting"
+            >
+              <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              <span>Setup Headers</span>
+            </button>
+          </div>
 
           <button
             type="button"
@@ -876,7 +1077,7 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
                     >
                       <option value="Sourcing & Shipping">Sourcing &amp; Shipping</option>
                       <option value="Sourcing Only">Sourcing Only</option>
-                      <option value="Air Cargo">Air Cargo (3-7d)</option>
+                      <option value="Air Cargo">Air Cargo (7-14d)</option>
                       <option value="Sea Cargo">Sea Cargo (35-45d)</option>
                       <option value="Door-to-Door">Door-to-Door Delivery</option>
                     </select>
@@ -1271,6 +1472,158 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
                   className="px-5 py-2 rounded-lg bg-[#EA1D2C] text-white font-bold hover:bg-[#D41523] disabled:opacity-50 cursor-pointer"
                 >
                   {isImporting ? 'Importing...' : 'Start Import →'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 7. GOOGLE SHEET SETUP & HEADERS MODAL */}
+      {showSheetSetupModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18M9 21V9" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 font-['Manrope']">
+                    Google Sheet Ledger Form & Header Setup
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Format Row 1 with 24 official titles matching our POS Ledger, freeze headers, and prevent formula errors.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSheetSetupModal(false)}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
+                aria-label="Close modal"
+              >
+                <svg className="w-3.5 h-3.5 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4 pt-4 text-xs">
+              {/* Quick Actions Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Method 1: Instant Copy Headers */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded">
+                      Fastest: 10 Seconds
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 mt-2">Copy 24 Column Titles</h4>
+                    <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+                      1. In Google Sheets, right-click row 1 &gt; <strong>Insert 1 row above</strong>.<br />
+                      2. Click cell <strong>A1</strong> and press <strong>Ctrl+V / Cmd+V</strong>.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyHeadersToClipboard}
+                    className="mt-3 w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>{copiedHeaders ? 'Copied to Clipboard!' : 'Copy 24 Header Titles'}</span>
+                  </button>
+                </div>
+
+                {/* Method 2: Webhook Trigger */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-700 bg-blue-100/60 px-2 py-0.5 rounded">
+                      Automated Sync
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 mt-2">Trigger Header Setup via Webhook</h4>
+                    <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+                      Sends an automated instruction to your connected Apps Script to format Row 1, freeze headers, and set dark styling.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isSettingUpHeaders}
+                    onClick={handleSetupSheetHeaders}
+                    className="mt-3 w-full py-2 px-3 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-50"
+                  >
+                    <svg className={`w-3.5 h-3.5 ${isSettingUpHeaders ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    <span>{isSettingUpHeaders ? 'Initializing...' : 'Initialize Headers Now'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Complete Google Apps Script */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 font-['Manrope']">
+                      Upgraded Google Apps Script (Auto-Headers &amp; Menu)
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Includes <code>setupSheet()</code> function and custom <strong>🚀 GoShipping</strong> menu inside Google Sheets.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyScriptToClipboard}
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[11px] flex items-center gap-1 cursor-pointer"
+                  >
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" />
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                    <span>{copiedScript ? 'Script Copied!' : 'Copy Code'}</span>
+                  </button>
+                </div>
+                <div className="p-3 bg-slate-950 text-slate-200 rounded-lg font-mono text-[11px] overflow-x-auto max-h-40 border border-slate-800">
+                  <pre className="text-emerald-400">// In Google Sheets: Extensions &gt; Apps Script &gt; Paste code &gt; Run setupSheet()</pre>
+                  <pre className="text-slate-300">function setupSheet() &#123; ... sets 24 headers, #11181E styling, freezes row 1 &#125;</pre>
+                  <pre className="text-slate-400">function doPost(e) &#123; ... handles auto-init &amp; saves orders &#125;</pre>
+                </div>
+              </div>
+
+              {/* 24 Columns Reference Table */}
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <div className="bg-slate-100/80 px-3 py-2 border-b border-slate-200 font-bold text-slate-800 text-[11px]">
+                  All 24 Columns Reference (1:1 with GoShipping POS Ledger)
+                </div>
+                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-[11px] max-h-48 overflow-y-auto font-mono">
+                  {[
+                    "A: Order ID", "B: Order Date", "C: Customer Name", "D: Mobile / WhatsApp No",
+                    "E: Shipping Mark", "F: Product / Item Details", "G: Supplier / Platform", "H: Quantity (Pcs)",
+                    "I: Unit Price (RMB ¥)", "J: Total Purchase (RMB ¥)", "K: RMB Rate (BDT)", "L: Purchase Cost (BDT)",
+                    "M: China Weight (KG)", "N: BD Weight (KG)", "O: Shipping Rate / KG (BDT)", "P: Int'l Freight (BDT)",
+                    "Q: Total Bill (BDT)", "R: Customer Paid (BDT)", "S: Outstanding Due (BDT)", "T: Payment Status",
+                    "U: Order Status", "V: BD Courier Partner", "W: BD Courier Tracking No", "X: Remarks / Customer Notes"
+                  ].map((col, idx) => (
+                    <div key={idx} className="px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-700 truncate">
+                      {col}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSheetSetupModal(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer text-xs"
+                >
+                  Done
                 </button>
               </div>
             </div>

@@ -108,14 +108,13 @@ const user = Astro.locals.user as AuthUser;
                 <span>Overview</span>
               </a>
 
-              {/* 2. Unified Orders & Sourcing Group */}
+              {/* 2. Unified Orders Group with Submenu */}
               <div class="space-y-0.5">
                 <a
-                  href="/admin?tab=orders&view=sourcing"
+                  href="/admin?tab=orders"
                   data-tab="orders"
-                  data-view="sourcing"
                   class={`dashboard-nav-link flex items-center justify-between px-3 py-2.5 rounded-r-lg font-medium transition-none border-l-4 ${
-                    activeTab === 'orders' || activeTab === 'shipments' || activeTab === 'tracking' || activeTab === 'pos_ledger' || activeTab === 'ledger'
+                    activeTab === 'orders' || activeTab === 'shipments' || activeTab === 'tracking' || activeTab === 'pos_ledger' || activeTab === 'ledger' || activeTab === 'new_order'
                       ? 'bg-slate-100 text-slate-900 font-semibold border-[#EA1D2C]'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-transparent'
                   }`}
@@ -127,30 +126,31 @@ const user = Astro.locals.user as AuthUser;
                       <path d="m3.3 7 8.7 5 8.7-5" />
                       <path d="M12 22V12" />
                     </svg>
-                    <span class="truncate">Orders &amp; Sourcing</span>
+                    <span class="truncate">Orders</span>
                   </div>
-                  <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-100 text-[#EA1D2C] shrink-0">POS</span>
                 </a>
 
-                {/* Nested Sub-items under Orders */}
-                <div class="pl-7 pr-2 py-0.5 space-y-0.5 border-l-2 border-slate-200 ml-5 my-0.5">
+                {/* Submenu tree under Orders with vertical branch line */}
+                <div class="pl-6 pr-2 py-0.5 space-y-0.5 border-l-2 border-slate-200 ml-5 my-0.5">
                   <a
                     href="/admin?tab=orders&view=sourcing"
                     data-tab="orders"
                     data-view="sourcing"
-                    class="dashboard-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-none"
+                    class="dashboard-nav-link flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-none"
                   >
-                    <span class="truncate">Sourcing POS Ledger</span>
-                    <span class="text-[9px] font-mono font-bold px-1 rounded bg-slate-100 text-slate-600">POS</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 dot-indicator"></span>
+                    <span class="truncate">Order Ledger</span>
                   </a>
 
                   <a
-                    href="/admin?tab=orders&view=freight"
+                    href="/admin?tab=orders&view=sourcing&action=new_pos"
                     data-tab="orders"
-                    data-view="freight"
-                    class="dashboard-nav-link flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-none"
+                    data-view="sourcing"
+                    data-action="new_pos"
+                    class="dashboard-nav-link flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-none"
                   >
-                    <span class="truncate">Freight Shipments</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 dot-indicator"></span>
+                    <span class="truncate">Add to Ledger</span>
                   </a>
 
                   <a
@@ -162,8 +162,18 @@ const user = Astro.locals.user as AuthUser;
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#EA1D2C] shrink-0"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 dot-indicator"></span>
                     <span class="truncate">Create Order</span>
+                  </a>
+
+                  <a
+                    href="/admin?tab=orders&view=freight"
+                    data-tab="orders"
+                    data-view="freight"
+                    class="dashboard-nav-link flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-none"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0 dot-indicator"></span>
+                    <span class="truncate">Freight Shipments</span>
                   </a>
                 </div>
               </div>
@@ -584,42 +594,86 @@ const user = Astro.locals.user as AuthUser;
         const navLinks = document.querySelectorAll('.dashboard-nav-link');
         if (!navLinks.length) return;
 
-        function updateActiveClasses(targetTab, targetView) {
+        function updateActiveClasses(targetTab, targetView, targetAction) {
           const currentUrl = new URL(window.location.href);
           const activeView = targetView !== undefined ? targetView : (currentUrl.searchParams.get('view') || (targetTab === 'orders' ? 'sourcing' : ''));
+          const activeAction = targetAction !== undefined ? targetAction : (currentUrl.searchParams.get('action') || '');
 
           navLinks.forEach(link => {
             const tab = link.getAttribute('data-tab');
             const view = link.getAttribute('data-view');
+            const action = link.getAttribute('data-action');
+            const dot = link.querySelector('.dot-indicator');
 
+            // 1. Sub-item "Add to Ledger" (has data-action="new_pos")
+            if (action === 'new_pos') {
+              const isMatch = (targetTab === 'orders' || targetTab === 'pos_ledger') && activeAction === 'new_pos';
+              if (isMatch) {
+                link.classList.add('bg-red-50', 'text-[#EA1D2C]', 'font-bold');
+                link.classList.remove('text-slate-600', 'text-slate-500', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.add('bg-[#EA1D2C]');
+                  dot.classList.remove('bg-slate-300', 'bg-slate-400');
+                }
+              } else {
+                link.classList.remove('bg-red-50', 'text-[#EA1D2C]', 'font-bold');
+                link.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.remove('bg-[#EA1D2C]');
+                  dot.classList.add('bg-slate-300');
+                }
+              }
+              return;
+            }
+
+            // 2. Sub-item "Create Order" (tab === 'new_order')
             if (tab === 'new_order') {
               if (targetTab === 'new_order') {
                 link.classList.add('bg-red-50', 'text-[#EA1D2C]', 'font-bold');
                 link.classList.remove('text-slate-500', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.add('bg-[#EA1D2C]');
+                  dot.classList.remove('bg-slate-300', 'bg-slate-400');
+                }
               } else {
                 link.classList.remove('bg-red-50', 'text-[#EA1D2C]', 'font-bold');
                 link.classList.add('text-slate-500', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.remove('bg-[#EA1D2C]');
+                  dot.classList.add('bg-slate-300');
+                }
               }
               return;
             }
 
-            // Sub-item links with specific data-view
+            // 3. Sub-item links with specific data-view (Order Ledger, Freight Shipments)
             if (view) {
-              const isMatchView = (targetTab === 'orders' || targetTab === 'shipments' || targetTab === 'pos_ledger' || targetTab === 'ledger') && (view === activeView || (!activeView && view === 'sourcing'));
+              const isMatchView = (targetTab === 'orders' || targetTab === 'shipments' || targetTab === 'pos_ledger' || targetTab === 'ledger') && 
+                (view === activeView || (!activeView && view === 'sourcing')) &&
+                activeAction !== 'new_pos';
               if (isMatchView) {
                 link.classList.add('bg-red-50', 'text-[#EA1D2C]', 'font-semibold');
                 link.classList.remove('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.add('bg-[#EA1D2C]');
+                  dot.classList.remove('bg-slate-300', 'bg-slate-400');
+                }
               } else {
                 link.classList.remove('bg-red-50', 'text-[#EA1D2C]', 'font-semibold');
                 link.classList.add('text-slate-600', 'hover:bg-slate-50', 'hover:text-slate-900');
+                if (dot) {
+                  dot.classList.remove('bg-[#EA1D2C]');
+                  dot.classList.add('bg-slate-300');
+                }
               }
               return;
             }
 
+            // 4. Main Level Menu Links
             const isMatch = tab === targetTab || 
               (targetTab === 'calculator' && tab === 'request-quote') || 
               (targetTab === 'request-quote' && tab === 'calculator') ||
-              ((targetTab === 'tracking' || targetTab === 'shipments' || targetTab === 'orders' || targetTab === 'pos_ledger' || targetTab === 'ledger') && (tab === 'orders')) ||
+              ((targetTab === 'tracking' || targetTab === 'shipments' || targetTab === 'orders' || targetTab === 'pos_ledger' || targetTab === 'ledger' || targetTab === 'new_order') && (tab === 'orders')) ||
               ((targetTab === 'quotes' || targetTab === 'quote') && (tab === 'quotes' || tab === 'quote')) ||
               ((targetTab === 'invoices' || targetTab === 'invoice') && (tab === 'invoices' || tab === 'invoice')) ||
               ((targetTab === 'users' || targetTab === 'customers') && (tab === 'users' || tab === 'customers')) ||
@@ -637,12 +691,12 @@ const user = Astro.locals.user as AuthUser;
 
         // Initialize active state on page load
         const initParams = new URLSearchParams(window.location.search);
-        updateActiveClasses(initParams.get('tab') || 'overview', initParams.get('view') || undefined);
+        updateActiveClasses(initParams.get('tab') || 'overview', initParams.get('view') || undefined, initParams.get('action') || undefined);
 
         // Sync when island or popstate changes tab
         window.addEventListener('dashboard-tab-changed', (e) => {
           if (typeof e.detail === 'object' && e.detail !== null) {
-            updateActiveClasses(e.detail.tab, e.detail.view);
+            updateActiveClasses(e.detail.tab, e.detail.view, e.detail.action);
           } else if (e.detail) {
             updateActiveClasses(e.detail);
           }
@@ -652,13 +706,15 @@ const user = Astro.locals.user as AuthUser;
           const params = new URLSearchParams(window.location.search);
           const tab = params.get('tab') || 'overview';
           const view = params.get('view') || undefined;
-          updateActiveClasses(tab, view);
+          const action = params.get('action') || undefined;
+          updateActiveClasses(tab, view, action);
         });
 
         navLinks.forEach(link => {
           link.addEventListener('click', (e) => {
             const targetTab = link.getAttribute('data-tab');
             const targetView = link.getAttribute('data-view');
+            const targetAction = link.getAttribute('data-action');
             if (!targetTab) return;
 
             const isCurrentAdminPage = window.location.pathname.startsWith('/admin');
@@ -667,7 +723,7 @@ const user = Astro.locals.user as AuthUser;
             if (isCurrentAdminPage || isCurrentCustomerPage) {
               e.preventDefault();
               closeSidebar();
-              updateActiveClasses(targetTab, targetView || undefined);
+              updateActiveClasses(targetTab, targetView || undefined, targetAction || undefined);
               const url = new URL(window.location.href);
               url.searchParams.set('tab', targetTab);
               if (targetView) {
@@ -675,10 +731,18 @@ const user = Astro.locals.user as AuthUser;
               } else {
                 url.searchParams.delete('view');
               }
+              if (targetAction) {
+                url.searchParams.set('action', targetAction);
+              } else {
+                url.searchParams.delete('action');
+              }
               window.history.pushState({}, '', url.toString());
               window.dispatchEvent(new CustomEvent('switch-dashboard-tab', { 
                 detail: { tab: targetTab, view: targetView || undefined } 
               }));
+              if (targetAction === 'new_pos') {
+                window.dispatchEvent(new CustomEvent('open-new-pos-order'));
+              }
             }
           });
         });

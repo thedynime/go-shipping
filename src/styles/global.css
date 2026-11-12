@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+/* Force Light Theme: Disable automatic dark mode from prefers-color-scheme */
+@custom-variant dark (&:where(.never-match-dark));
+
 @layer base {
   html, body {
     overflow-x: clip;

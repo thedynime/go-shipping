@@ -1,26 +1,26 @@
 [
   {
     "id": "sourcing-hero",
-    "badge": "GO SHIPPING • CHINA SOURCING & LOGISTICS",
-    "headlineBengali": "চীন থেকে পণ্য সোর্সিং ও শিপমেন্ট করতে চান?",
-    "headlineAccent": "সঠিক পণ্য, নির্ভরযোগ্য Supplier — সবকিছু এক জায়গায়।",
-    "subtitle": "আপনার ব্যবসার জন্য চীনের মার্কেট বা Factory থেকে সঠিক পণ্য খুঁজে বের করা, কোয়ালিটি যাচাই, কাস্টমস ক্লিয়ারেন্স এবং ডোর-টু-ডোর ডেলিভারি—সবকিছুতে বিশ্বস্ত পার্টনার Go Shipping!",
+    "badge": "GO SHIPPING • CHINA SOURCING SERVICE",
+    "headlineBengali": "চীন থেকে সরাসরি ফ্যাক্টরি রেটে পণ্য সোর্সিং",
+    "headlineAccent": "৫০০০+ ভেরিফায়েড ফ্যাক্টরি ও বিশ্বস্ত সাপ্লায়ার নেটওয়ার্ক",
+    "subtitle": "গুয়াংজু হোলসেল মার্কেট ও ফ্যাক্টরি থেকে সরাসরি পারচেজ সাপোর্ট, কোয়ালিটি যাচাই, কাস্টমস ক্লিয়ারেন্স এবং ডোর-টু-ডোর ডেলিভারি—সবকিছু এক ছাদের নিচে Go Shipping!",
     "primaryCtaText": "সোর্সিং শুরু করুন →",
-    "primaryCtaLink": "/sourcing",
-    "secondaryCtaText": "Ship for Me (রেট হিসাব)",
-    "secondaryCtaLink": "/quote",
+    "primaryCtaLink": "/sourcing#sourcing-form",
+    "secondaryCtaText": "হোয়াটসঅ্যাপ সাপোর্ট",
+    "secondaryCtaLink": "https://wa.me/8801797252627?text=Hello%20Go%20Shipping%2C%20I%20want%20to%20source%20products%20from%20China.",
     "features": [
-      "China Product Sourcing",
-      "Supplier & Factory Verification",
-      "Door-to-Door Delivery (Air & Sea)"
+      "৫০০০+ ভেরিফায়েড ফ্যাক্টরি",
+      "China Product Sourcing & Supplier Verification",
+      "Guangzhou · Yiwu · Shenzhen Hub"
     ],
     "imageUrl": "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1600&q=85",
-    "imageAlt": "China to Bangladesh International Freight & Sourcing Cargo Hub",
-    "taglineSmall": "Guangzhou · Yiwu · Shenzhen ⇄ Dhaka · Chittagong",
+    "imageAlt": "Go Shipping China Sourcing & Cargo Operations Hub",
+    "taglineSmall": "Guangzhou Wholesale Market · Purchase Support · Verified Factories",
     "displayOrder": 0,
     "isActive": true,
     "createdAt": "2026-11-05T05:22:14.553Z",
-    "updatedAt": "2026-11-05T05:58:34.903Z"
+    "updatedAt": "2026-11-12T16:00:00.000Z"
   },
   {
     "id": "freight-hero",
@@ -34,7 +34,7 @@
     "secondaryCtaLink": "/tracking",
     "features": [
       "Air Cargo (7–14 Days)",
-      "Sea Cargo (Per KG / Per CBM)",
+      "Sea Cargo (Per KG or Per CBM)",
       "No Hidden Duty or Port Charges"
     ],
     "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1600&q=85",
@@ -43,6 +43,6 @@
     "displayOrder": 1,
     "isActive": true,
     "createdAt": "2026-11-05T05:22:14.553Z",
-    "updatedAt": "2026-11-05T05:22:14.553Z"
+    "updatedAt": "2026-11-12T16:00:00.000Z"
   }
 ]

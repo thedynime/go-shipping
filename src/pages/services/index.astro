@@ -35,12 +35,6 @@ const servicesListSchema = {
           "position": 4,
           "name": "Customs Clearance Bangladesh",
           "url": `${siteOrigin}/services/customs-clearance`
-        },
-        {
-          "@type": "ListItem",
-          "position": 5,
-          "name": "China Warehousing & Consolidation",
-          "url": `${siteOrigin}/services/china-warehouse`
         }
       ]
     },
@@ -57,7 +51,7 @@ const servicesListSchema = {
 
 <PublicLayout
   title="Our Services | Complete China to Bangladesh Logistics Solutions — Go Shipping"
-  description="Explore full logistics solutions: Air Freight (3-7 days), Sea Container Shipping (FCL/LCL), All-inclusive Door-to-Door DDP Delivery, Customs Brokerage, and China Warehouses."
+  description="Explore full logistics solutions: Air Freight (7-14 days), Sea Container Shipping (FCL/LCL), All-inclusive Door-to-Door DDP Delivery, and Customs Brokerage."
   keywords="China to Bangladesh services, air shipment China to Bangladesh, sea shipment China to Bangladesh, door-to-door delivery Bangladesh, China cargo support, customs clearance dhaka"
   currentPath="/services"
   image="/og/og-services.png"
@@ -90,7 +84,7 @@ const servicesListSchema = {
           <a href="/services/air-shipment" class="hover:text-[#EA1D2C] transition-colors">Air Shipment</a>
         </h2>
         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-          Fast and reliable air cargo service from Guangzhou and Shenzhen to Dhaka, Bangladesh. Approximate transit: 3–7 days with daily flight allocations.
+          Fast and reliable air cargo service from Guangzhou and Shenzhen to Dhaka, Bangladesh. Approximate transit: 7–14 days with daily flight allocations.
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1 sm:pt-2 text-xs">
           <div class="p-3.5 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 shadow-2xs">
@@ -245,52 +239,10 @@ const servicesListSchema = {
         </div>
       </div>
     </div>
-
-    <!-- Service 05: China Warehouses -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center pt-8 border-t border-slate-100">
-      <div class="lg:col-span-6 space-y-3 sm:space-y-4">
-        <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#EA1D2C]">/05 — WAREHOUSING</span>
-        <h2 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 font-['Manrope',sans-serif]">
-          <a href="/services/china-warehouse" class="hover:text-[#EA1D2C] transition-colors">China Warehouse Support</a>
-        </h2>
-        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-          Consolidation hubs in Guangzhou, Yiwu, and Shenzhen. Free 30-day receiving and package storage, multi-supplier parcel merging, and carton repacking before flight or vessel dispatch.
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1 sm:pt-2 text-xs">
-          <div class="p-3.5 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 shadow-2xs">
-            <h4 class="font-bold text-slate-900">30 Days Free Storage</h4>
-            <p class="text-slate-500 mt-1">Collect from multiple suppliers with zero holding fees.</p>
-          </div>
-          <div class="p-3.5 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 shadow-2xs">
-            <h4 class="font-bold text-slate-900">Inspection &amp; Repacking</h4>
-            <p class="text-slate-500 mt-1">Photo verification and reinforced boxing for safety.</p>
-          </div>
-        </div>
-        <div class="pt-2 flex items-center gap-4">
-          <a
-            href="/services/china-warehouse"
-            class="min-h-[44px] inline-flex items-center gap-1 text-xs font-bold text-white bg-[#EA1D2C] hover:bg-[#D41523] px-4 py-2.5 rounded-lg transition-colors shadow-xs"
-          >
-            Explore China Warehouses →
-          </a>
-        </div>
-      </div>
-      <div class="lg:col-span-6 rounded-xl overflow-hidden border border-slate-200 aspect-[16/10] shadow-2xs">
-        <img
-          src="https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=1200&q=80"
-          alt="Cargo and logistics warehouse support"
-          class="w-full h-full object-cover"
-        />
-      </div>
-    </div>
   </section>
 
   <!-- Quote Section -->
   <section class="py-10 sm:py-16 lg:py-20 bg-slate-50 border-t border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <QuoteCalculatorIsland client:visible />
-    </div>
-  </section>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <QuoteCalculatorIsland client:visible />
     </div>

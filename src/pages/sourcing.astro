@@ -1,7 +1,10 @@
 ---
 import PublicLayout from '../layouts/PublicLayout.astro';
+import HomeHeroBannerIsland from '../components/marketing/HomeHeroBannerIsland';
+import { BannerService } from '../server/services/banner.service';
 import { getSiteOrigin } from '../server/utils/domain';
 
+const dynamicBanners = await BannerService.getBanners(true);
 const siteOrigin = getSiteOrigin(Astro.request);
 const canonicalUrl = `${siteOrigin}/sourcing`;
 
@@ -51,7 +54,12 @@ const sourcingSchema = {
     <script type="application/ld+json" set:html={JSON.stringify(sourcingSchema)} />
   </Fragment>
 
-  <!-- 01. Hero Section (Ad-Optimized Above-the-Fold Light Theme) -->
+  <!-- ========================================================================= -->
+  <!-- 01. DYNAMIC HERO BANNER SYSTEM (China Sourcing & Cargo Operations)         -->
+  <!-- ========================================================================= -->
+  <HomeHeroBannerIsland client:load initialBanners={dynamicBanners} />
+
+  <!-- 02. Sourcing Highlights Section (Light Theme) -->
   <section class="relative bg-gradient-to-b from-white via-red-50/20 to-slate-50/50 text-slate-900 py-10 sm:py-14 lg:py-18 border-b border-slate-200 overflow-hidden">
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -78,7 +86,7 @@ const sourcingSchema = {
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-2 text-xs">
             <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
               <span class="block text-slate-500 text-[10px]">সাপ্লায়ার নেটওয়ার্ক</span>
-              <strong class="text-slate-900 font-bold text-xs sm:text-sm">৫০০+ ভেরিফায়েড ফ্যাক্টরি</strong>
+              <strong class="text-slate-900 font-bold text-xs sm:text-sm">৫০০০+ ভেরিফায়েড ফ্যাক্টরি</strong>
             </div>
             <div class="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
               <span class="block text-slate-500 text-[10px]">গুয়াংজু ওয়্যারহাউস</span>

@@ -65,23 +65,23 @@
   --kumo-text: var(--color-text-primary);
 }
 
-/* Dark Theme Overrides */
+/* Force light theme always - Black theme disabled per client request */
 [data-theme="dark"] {
-  --color-canvas: #0B1015;
-  --color-surface-subtle: #11181E;
-  --color-surface-muted: #19232B;
-  --color-border-subtle: #24303B;
-  --color-border-medium: #334155;
+  --color-canvas: #FFFFFF;
+  --color-surface-subtle: #F8FAFC;
+  --color-surface-muted: #F1F5F9;
+  --color-border-subtle: #E2E8F0;
+  --color-border-medium: #CBD5E1;
 
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
+  --color-text-primary: #11181E;
+  --color-text-secondary: #475569;
   --color-text-tertiary: #64748B;
-  --color-text-inverse: #0B1015;
+  --color-text-inverse: #FFFFFF;
 
-  --color-brand-primary-subtle: #2C1316;
-  --color-brand-primary-border: #4D1A20;
+  --color-brand-primary-subtle: #F8E9EB;
+  --color-brand-primary-border: #F3CAD0;
 
-  --kumo-bg: #0B1015;
-  --kumo-card: #11181E;
-  --kumo-text: #F8FAFC;
+  --kumo-bg: #FFFFFF;
+  --kumo-card: #FFFFFF;
+  --kumo-text: #11181E;
 }

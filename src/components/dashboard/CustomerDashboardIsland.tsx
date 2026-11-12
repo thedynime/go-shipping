@@ -200,13 +200,13 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
     date: string;
   } | null>(null);
 
-  // Profile Form State
-  const [profileName, setProfileName] = useState(user?.fullName || 'Apex Textiles Ltd');
-  const [profileCompany, setProfileCompany] = useState(user?.companyName || user?.fullName || 'Apex Textiles Ltd');
-  const [profileEmail, setProfileEmail] = useState(user?.email || userEmail || 'client@apextextiles.com');
-  const [profilePhone, setProfilePhone] = useState(user?.phone || '+880 1711 000000');
-  const [profileAddress, setProfileAddress] = useState(user?.address || 'Export Processing Zone, Savar, Dhaka 1349, Bangladesh');
-  const [profileBin, setProfileBin] = useState(user?.binNumber || '002918291-0102');
+  // Profile Form State (Clean user data - no hardcoded mock auto-fill per client instruction)
+  const [profileName, setProfileName] = useState(user?.fullName || '');
+  const [profileCompany, setProfileCompany] = useState(user?.companyName || user?.fullName || '');
+  const [profileEmail, setProfileEmail] = useState(user?.email || userEmail || '');
+  const [profilePhone, setProfilePhone] = useState(user?.phone || '');
+  const [profileAddress, setProfileAddress] = useState(user?.address || '');
+  const [profileBin, setProfileBin] = useState(user?.binNumber || '');
   const [profilePassword, setProfilePassword] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccessMsg, setProfileSuccessMsg] = useState('');
@@ -1320,7 +1320,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                   type="text"
                   value={profileCompany}
                   onChange={(e) => setProfileCompany(e.target.value)}
-                  required
+                  placeholder="e.g. Apex Textiles Ltd"
                   className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-medium text-slate-900"
                 />
               </div>
@@ -1331,7 +1331,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                   type="text"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  required
+                  placeholder="e.g. Rafiqul Islam"
                   className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-medium text-slate-900"
                 />
               </div>
@@ -1344,7 +1344,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                   type="email"
                   value={profileEmail}
                   onChange={(e) => setProfileEmail(e.target.value)}
-                  required
+                  placeholder="name@company.com"
                   className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-mono text-slate-900"
                 />
               </div>
@@ -1355,7 +1355,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                   type="text"
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
-                  required
+                  placeholder="+880 17XX XXXXXX"
                   className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-medium text-slate-900"
                 />
               </div>
@@ -1368,7 +1368,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                   type="text"
                   value={profileBin}
                   onChange={(e) => setProfileBin(e.target.value)}
-                  required
+                  placeholder="e.g. 002918291-0102"
                   className="w-full h-9 px-3 rounded-lg border border-slate-300 bg-white font-mono text-slate-900"
                 />
               </div>
@@ -1391,7 +1391,7 @@ export default function CustomerDashboardIsland({ initialTab = 'overview', user,
                 rows={2}
                 value={profileAddress}
                 onChange={(e) => setProfileAddress(e.target.value)}
-                required
+                placeholder="Enter delivery or factory address in Bangladesh..."
                 className="w-full p-2.5 rounded-lg border border-slate-300 bg-white text-slate-900"
               />
             </div>

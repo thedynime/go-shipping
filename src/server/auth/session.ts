@@ -559,9 +559,9 @@ export const DEFAULT_ACCOUNTS = [
     role: 'customer' as UserRole,
     status: 'active',
     companyName: 'Apex Textiles Ltd',
-    phone: '+880 1711 000000',
-    address: 'Export Processing Zone, Savar, Dhaka 1349, Bangladesh',
-    binNumber: '002918291-0102'
+    phone: '',
+    address: '',
+    binNumber: ''
   }
 ];
 

@@ -253,7 +253,7 @@ export class QuoteService {
       totalAmount,
       currency: revision.currency || 'BDT',
       validityDate: revision.validityDate || new Date(Date.now() + 7 * 86400000).toISOString(),
-      transitTimeDays: revision.transitTimeDays || '3-7 days',
+      transitTimeDays: revision.transitTimeDays || '7-14 days',
       notes: revision.notes,
       createdAt: new Date().toISOString()
     };
