@@ -376,28 +376,54 @@ export default function PosLedgerTerminal({ showToast }: { showToast: (msg: stri
   };
 
   const copyHeadersToClipboard = () => {
-    const headersTab = "Order ID\tOrder Date\tCustomer Name\tMobile / WhatsApp No\tShipping Mark\tProduct / Item Details\tSupplier / Platform\tQuantity (Pcs)\tUnit Price (RMB ¥)\tTotal Purchase (RMB ¥)\tRMB Rate (BDT)\tPurchase Cost (BDT)\tChina Weight (KG)\tBD Weight (KG)\tShipping Rate / KG (BDT)\tInt'l Freight (BDT)\tTotal Bill (BDT)\tCustomer Paid (BDT)\tOutstanding Due (BDT)\tPayment Status\tOrder Status\tBD Courier Partner\tBD Courier Tracking No\tRemarks / Customer Notes";
+    const headersTab = "Order ID\tOrder Date\tCN Date\tBD Date\tCustomer Name\tMobile No\tImporter / Client\tShipping Mark\tWebsite Order No\tItem / Product Details\tChina Courier Tracking (SF/ZTO)\tCurrent Status\tSupplier / Shop Name\tQuantity (Pcs)\tUnit Price (RMB)\tTotal Purchase (RMB) [Auto]\tRMB Rate (BDT)\tPurchase Cost (BDT) [Auto]\tPurchase Cost Paid     [ Customer ]\tPurchase Cost Due [Auto]\tService Type\tCN Weight (KG)\tBD Weight (KG)\tShipping Rate / KG (BDT)\tInternational Freight (BDT) [Auto]\tTotal Bill (BDT) [Auto]\tPayment Status [Auto]\tBD Tracking No\tRemark / Customer Update\tProfit Estimate (BDT) [Auto]";
     navigator.clipboard.writeText(headersTab);
     setCopiedHeaders(true);
-    showToast('24 Column Titles copied! Paste directly in cell A1 of Google Sheets', 'success');
+    showToast('30 Column Titles copied! Paste directly in cell A1 of Google Sheets', 'success');
     setTimeout(() => setCopiedHeaders(false), 3000);
   };
 
   const copyScriptToClipboard = () => {
     const fullScript = `/**
  * GoShipping — Automated Google Sheet Ledger Sync & Setup
+ * Matching Official Spreadsheet (All-in-One: 30 Columns A-AD)
  */
 var HEADERS = [
-  "Order ID", "Order Date", "Customer Name", "Mobile / WhatsApp No",
-  "Shipping Mark", "Product / Item Details", "Supplier / Platform", "Quantity (Pcs)",
-  "Unit Price (RMB ¥)", "Total Purchase (RMB ¥)", "RMB Rate (BDT)", "Purchase Cost (BDT)",
-  "China Weight (KG)", "BD Weight (KG)", "Shipping Rate / KG (BDT)", "Int'l Freight (BDT)",
-  "Total Bill (BDT)", "Customer Paid (BDT)", "Outstanding Due (BDT)", "Payment Status",
-  "Order Status", "BD Courier Partner", "BD Courier Tracking No", "Remarks / Customer Notes"
+  "Order ID",
+  "Order Date",
+  "CN Date",
+  "BD Date",
+  "Customer Name",
+  "Mobile No",
+  "Importer / Client",
+  "Shipping Mark",
+  "Website Order No",
+  "Item / Product Details",
+  "China Courier Tracking (SF/ZTO)",
+  "Current Status",
+  "Supplier / Shop Name",
+  "Quantity (Pcs)",
+  "Unit Price (RMB)",
+  "Total Purchase (RMB) [Auto]",
+  "RMB Rate (BDT)",
+  "Purchase Cost (BDT) [Auto]",
+  "Purchase Cost Paid     [ Customer ]",
+  "Purchase Cost Due [Auto]",
+  "Service Type",
+  "CN Weight (KG)",
+  "BD Weight (KG)",
+  "Shipping Rate / KG (BDT)",
+  "International Freight (BDT) [Auto]",
+  "Total Bill (BDT) [Auto]",
+  "Payment Status [Auto]",
+  "BD Tracking No",
+  "Remark / Customer Update",
+  "Profit Estimate (BDT) [Auto]"
 ];
 
 function setupSheet() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("All-in-One") || ss.getActiveSheet();
   var firstCellVal = sheet.getRange(1, 1).getValue().toString().trim();
 
   // If row 1 is not already header, insert new row at top
@@ -418,23 +444,13 @@ function setupSheet() {
   sheet.setRowHeight(1, 40);
   sheet.setFrozenRows(1);
 
+  // Set plain text format for Order ID, Mobile, Tracking numbers to prevent #ERROR!
   sheet.getRange("A:A").setNumberFormat("@");
-  sheet.getRange("D:D").setNumberFormat("@");
-  sheet.getRange("E:E").setNumberFormat("@");
-  sheet.getRange("W:W").setNumberFormat("@");
-
-  var lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    for (var r = 2; r <= lastRow; r++) {
-      var cell = sheet.getRange(r, 4);
-      var formula = cell.getFormula();
-      var displayVal = cell.getDisplayValue();
-      if (displayVal === "#ERROR!" || (formula && formula.indexOf("+") !== -1)) {
-        var rawText = formula.replace(/^=/, '');
-        cell.setValue("'" + rawText);
-      }
-    }
-  }
+  sheet.getRange("F:F").setNumberFormat("@");
+  sheet.getRange("H:H").setNumberFormat("@");
+  sheet.getRange("I:I").setNumberFormat("@");
+  sheet.getRange("K:K").setNumberFormat("@");
+  sheet.getRange("AB:AB").setNumberFormat("@");
 
   for (var c = 1; c <= HEADERS.length; c++) {
     sheet.autoResizeColumn(c);
@@ -450,17 +466,14 @@ function onOpen() {
 
 function doPost(e) {
   try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("All-in-One") || ss.getActiveSheet();
     var data = JSON.parse(e.postData.contents);
     
     if (data.action === "setup_headers") {
       setupSheet();
       return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Headers initialized" }))
         .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    if (sheet.getLastRow() === 0 || sheet.getRange(1, 1).getValue().toString().trim() !== "Order ID") {
-      setupSheet();
     }
 
     var orderId = data.orderId;
@@ -471,11 +484,25 @@ function doPost(e) {
 
     var lastRow = sheet.getLastRow();
     var targetRow = -1;
+
+    // 1. Search if order already exists in Column A (from row 2 down)
     if (lastRow > 1) {
       var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
       for (var i = 0; i < ids.length; i++) {
-        if (ids[i][0] == orderId) {
+        if (String(ids[i][0]).trim() === String(orderId).trim()) {
           targetRow = i + 2;
+          break;
+        }
+      }
+    }
+
+    // 2. If not found, find the first available row where Col A or Col E is empty
+    if (targetRow === -1 && lastRow > 1) {
+      var colA = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var j = 0; j < colA.length; j++) {
+        var valA = String(colA[j][0] || '').trim();
+        if (valA === '') {
+          targetRow = j + 2;
           break;
         }
       }
@@ -489,39 +516,47 @@ function doPost(e) {
     var rowValues = [
       data.orderId || '',
       data.orderDate || '',
+      data.cnDate || '',
+      data.bdDate || '',
       data.customerName || '',
       mobile,
+      data.importerClient || '',
       data.shippingMark || '',
+      data.websiteOrderNo || '',
       data.itemDetails || '',
-      data.supplierName || 'Taobao',
-      data.quantity || 1,
-      data.unitPriceRmb || 0,
-      data.totalPurchaseRmb || 0,
-      data.rmbRateBdt || 19.5,
-      data.purchaseCostBdt || 0,
-      data.cnWeightKg || 0,
-      data.bdWeightKg || 0,
-      data.shippingRatePerKgBdt || 850,
-      data.internationalFreightBdt || 0,
-      data.totalBillBdt || 0,
-      data.purchaseCostPaidBdt || 0,
-      data.purchaseCostDueBdt || 0,
-      data.paymentStatus || 'Due',
+      data.chinaCourierTracking || '',
       data.currentStatus || 'Processing',
-      data.bdCourierName || '',
+      data.supplierName || 'Taobao',
+      Number(data.quantity) || 1,
+      Number(data.unitPriceRmb) || 0,
+      Number(data.totalPurchaseRmb) || 0,
+      Number(data.rmbRateBdt) || 19.5,
+      Number(data.purchaseCostBdt) || 0,
+      Number(data.purchaseCostPaidBdt) || 0,
+      Number(data.purchaseCostDueBdt) || 0,
+      data.serviceType || 'Sourcing & Shipping',
+      Number(data.cnWeightKg) || 0,
+      Number(data.bdWeightKg) || 0,
+      Number(data.shippingRatePerKgBdt) || 850,
+      Number(data.internationalFreightBdt) || 0,
+      Number(data.totalBillBdt) || 0,
+      data.paymentStatus || 'Due',
       data.bdTrackingNo || '',
-      data.remark || ''
+      data.remark || '',
+      Number(data.profitEstimateBdt) || 0
     ];
     
     if (targetRow > 0) {
       sheet.getRange(targetRow, 1, 1, rowValues.length).setValues([rowValues]);
     } else {
       sheet.appendRow(rowValues);
+      targetRow = sheet.getLastRow();
     }
     
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
       orderId: orderId,
+      row: targetRow,
       action: targetRow > 0 ? 'updated' : 'appended'
     })).setMimeType(ContentService.MimeType.JSON);
     
@@ -1492,10 +1527,10 @@ function doPost(e) {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 font-['Manrope']">
-                    Google Sheet Ledger Form & Header Setup
+                    Official Google Sheet Ledger Setup (All-in-One: 30 Columns)
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Format Row 1 with 24 official titles matching our POS Ledger, freeze headers, and prevent formula errors.
+                    Format Row 1 with 30 official titles matching our POS Ledger, freeze headers, and prevent formula errors.
                   </p>
                 </div>
               </div>
@@ -1521,7 +1556,7 @@ function doPost(e) {
                     <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded">
                       Fastest: 10 Seconds
                     </span>
-                    <h4 className="text-sm font-bold text-slate-900 mt-2">Copy 24 Column Titles</h4>
+                    <h4 className="text-sm font-bold text-slate-900 mt-2">Copy 30 Column Titles</h4>
                     <p className="text-slate-600 text-xs mt-1 leading-relaxed">
                       1. In Google Sheets, right-click row 1 &gt; <strong>Insert 1 row above</strong>.<br />
                       2. Click cell <strong>A1</strong> and press <strong>Ctrl+V / Cmd+V</strong>.
@@ -1536,7 +1571,7 @@ function doPost(e) {
                       <rect x="9" y="9" width="13" height="13" rx="2" />
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
-                    <span>{copiedHeaders ? 'Copied to Clipboard!' : 'Copy 24 Header Titles'}</span>
+                    <span>{copiedHeaders ? 'Copied to Clipboard!' : 'Copy 30 Header Titles'}</span>
                   </button>
                 </div>
 
@@ -1571,10 +1606,10 @@ function doPost(e) {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 font-['Manrope']">
-                      Upgraded Google Apps Script (Auto-Headers &amp; Menu)
+                      Official 30-Column Google Apps Script
                     </h4>
                     <p className="text-[11px] text-slate-500">
-                      Includes <code>setupSheet()</code> function and custom <strong>🚀 GoShipping</strong> menu inside Google Sheets.
+                      Matches the <strong>All-in-One</strong> tab with 30 columns (A to AD), auto-updates existing orders, and fills template rows.
                     </p>
                   </div>
                   <button
@@ -1590,25 +1625,27 @@ function doPost(e) {
                   </button>
                 </div>
                 <div className="p-3 bg-slate-950 text-slate-200 rounded-lg font-mono text-[11px] overflow-x-auto max-h-40 border border-slate-800">
-                  <pre className="text-emerald-400">// In Google Sheets: Extensions &gt; Apps Script &gt; Paste code &gt; Run setupSheet()</pre>
-                  <pre className="text-slate-300">function setupSheet() &#123; ... sets 24 headers, #11181E styling, freezes row 1 &#125;</pre>
-                  <pre className="text-slate-400">function doPost(e) &#123; ... handles auto-init &amp; saves orders &#125;</pre>
+                  <pre className="text-emerald-400">// In Google Sheets: Extensions &gt; Apps Script &gt; Paste code &gt; Deploy as Web App</pre>
+                  <pre className="text-slate-300">function setupSheet() &#123; ... sets 30 headers, #11181E styling, freezes row 1 &#125;</pre>
+                  <pre className="text-slate-400">function doPost(e) &#123; ... writes 30 columns into All-in-One tab &#125;</pre>
                 </div>
               </div>
 
-              {/* 24 Columns Reference Table */}
+              {/* 30 Columns Reference Table */}
               <div className="rounded-xl border border-slate-200 overflow-hidden">
                 <div className="bg-slate-100/80 px-3 py-2 border-b border-slate-200 font-bold text-slate-800 text-[11px]">
-                  All 24 Columns Reference (1:1 with GoShipping POS Ledger)
+                  All 30 Columns Reference (1:1 with Official Google Sheet A-AD)
                 </div>
-                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 text-[11px] max-h-48 overflow-y-auto font-mono">
+                <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 text-[10px] max-h-56 overflow-y-auto font-mono">
                   {[
-                    "A: Order ID", "B: Order Date", "C: Customer Name", "D: Mobile / WhatsApp No",
-                    "E: Shipping Mark", "F: Product / Item Details", "G: Supplier / Platform", "H: Quantity (Pcs)",
-                    "I: Unit Price (RMB ¥)", "J: Total Purchase (RMB ¥)", "K: RMB Rate (BDT)", "L: Purchase Cost (BDT)",
-                    "M: China Weight (KG)", "N: BD Weight (KG)", "O: Shipping Rate / KG (BDT)", "P: Int'l Freight (BDT)",
-                    "Q: Total Bill (BDT)", "R: Customer Paid (BDT)", "S: Outstanding Due (BDT)", "T: Payment Status",
-                    "U: Order Status", "V: BD Courier Partner", "W: BD Courier Tracking No", "X: Remarks / Customer Notes"
+                    "A: Order ID", "B: Order Date", "C: CN Date", "D: BD Date",
+                    "E: Customer Name", "F: Mobile No", "G: Importer / Client", "H: Shipping Mark",
+                    "I: Website Order No", "J: Item / Product Details", "K: China Courier Tracking", "L: Current Status",
+                    "M: Supplier / Shop Name", "N: Quantity (Pcs)", "O: Unit Price (RMB)", "P: Total Purchase RMB [Auto]",
+                    "Q: RMB Rate (BDT)", "R: Purchase Cost BDT [Auto]", "S: Purchase Cost Paid", "T: Purchase Cost Due [Auto]",
+                    "U: Service Type", "V: CN Weight (KG)", "W: BD Weight (KG)", "X: Shipping Rate / KG",
+                    "Y: Int'l Freight [Auto]", "Z: Total Bill [Auto]", "AA: Payment Status [Auto]", "AB: BD Tracking No",
+                    "AC: Remark / Update", "AD: Profit Estimate [Auto]"
                   ].map((col, idx) => (
                     <div key={idx} className="px-2 py-1 rounded bg-slate-50 border border-slate-200 text-slate-700 truncate">
                       {col}

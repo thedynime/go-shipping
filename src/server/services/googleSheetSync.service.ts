@@ -41,34 +41,42 @@ function formatPhoneForSheet(phone: string | null | undefined): string {
 }
 
 /**
- * Format a PosLedgerRecord into the clean payload expected by the Google Sheet script.
+ * Format a PosLedgerRecord into the complete 30-column payload matching
+ * the official GoShipping Google Spreadsheet (All-in-One tab).
  */
 function formatRecordForSheet(record: PosLedgerRecord) {
   return {
     orderId: record.orderId || '',
     orderDate: record.orderDate || '',
+    cnDate: record.cnDate || '',
+    bdDate: record.bdDate || '',
     customerName: record.customerName || '',
     mobileNo: formatPhoneForSheet(record.mobileNo),
+    importerClient: record.importerClient || '',
     shippingMark: record.shippingMark || '',
+    websiteOrderNo: record.websiteOrderNo || '',
     itemDetails: record.itemDetails || '',
+    chinaCourierTracking: record.chinaCourierTracking || '',
+    currentStatus: record.currentStatus || 'Processing',
     supplierName: record.supplierName || 'Taobao',
     quantity: Number(record.quantity || 1),
     unitPriceRmb: Number(record.unitPriceRmb || 0),
     totalPurchaseRmb: Number(record.totalPurchaseRmb || 0),
     rmbRateBdt: Number(record.rmbRateBdt || 19.5),
     purchaseCostBdt: Number(record.purchaseCostBdt || 0),
+    purchaseCostPaidBdt: Number(record.purchaseCostPaidBdt || 0),
+    purchaseCostDueBdt: Number(record.purchaseCostDueBdt || 0),
+    serviceType: record.serviceType || 'Sourcing & Shipping',
     cnWeightKg: Number(record.cnWeightKg || 0),
     bdWeightKg: Number(record.bdWeightKg || 0),
     shippingRatePerKgBdt: Number(record.shippingRatePerKgBdt || 850),
     internationalFreightBdt: Number(record.internationalFreightBdt || 0),
     totalBillBdt: Number(record.totalBillBdt || 0),
-    purchaseCostPaidBdt: Number(record.purchaseCostPaidBdt || 0),
-    purchaseCostDueBdt: Number(record.purchaseCostDueBdt || 0),
     paymentStatus: record.paymentStatus || 'Due',
-    currentStatus: record.currentStatus || 'Processing',
     bdCourierName: record.bdCourierName || '',
     bdTrackingNo: record.bdTrackingNo || '',
-    remark: record.remark || ''
+    remark: record.remark || '',
+    profitEstimateBdt: Number(record.profitEstimateBdt || 0)
   };
 }
 
